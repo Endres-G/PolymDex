@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:polymdex/core/themes/design_system.dart';
+import 'package:polymdex/controllers/login_controller.dart';
 
 class RegisterFormWidget extends StatelessWidget {
   const RegisterFormWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<LoginController>();
+
+    final emailController = TextEditingController();
+    final nomeController = TextEditingController();
+    final senhaController = TextEditingController();
+    final senha2Controller = TextEditingController();
+
     return Center(
       child: Container(
         width: 320,
@@ -17,168 +26,137 @@ class RegisterFormWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Email
             Align(
-              alignment: AlignmentGeometry.bottomLeft,
+              alignment: Alignment.bottomLeft,
               child: Text("Email", style: const TextStyle(color: Colors.white)),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 40,
-              child: TextField(
-                cursorColor: DesignSystemColors.lightgrey,
-                decoration: InputDecoration(
-                  hintText: "Digite seu email",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
+            TextField(
+              controller: emailController,
+              cursorColor: DesignSystemColors.lightgrey,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration("Digite seu email"),
             ),
             const SizedBox(height: 16),
 
-            // Nome
             Align(
-              alignment: AlignmentGeometry.bottomLeft,
+              alignment: Alignment.bottomLeft,
               child: Text("Nome", style: const TextStyle(color: Colors.white)),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 40,
-              child: TextField(
-                cursorColor: DesignSystemColors.lightgrey,
-                decoration: InputDecoration(
-                  hintText: "Digite seu nome",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
+            TextField(
+              controller: nomeController,
+              cursorColor: DesignSystemColors.lightgrey,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration("Digite seu nome"),
             ),
             const SizedBox(height: 16),
 
-            // Senha
             Align(
-              alignment: AlignmentGeometry.bottomLeft,
+              alignment: Alignment.bottomLeft,
               child: Text("Senha", style: const TextStyle(color: Colors.white)),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 40,
-              child: TextField(
-                cursorColor: DesignSystemColors.lightgrey,
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: "Digite sua senha",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
+            TextField(
+              controller: senhaController,
+              obscureText: true,
+              cursorColor: DesignSystemColors.lightgrey,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration("Digite sua senha"),
             ),
             const SizedBox(height: 16),
 
-            // Senha novamente
             Align(
-              alignment: AlignmentGeometry.bottomLeft,
+              alignment: Alignment.bottomLeft,
               child: Text(
                 "Senha novamente",
                 style: const TextStyle(color: Colors.white),
               ),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 40,
-              child: TextField(
-                cursorColor: DesignSystemColors.lightgrey,
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: "Digite sua senha novamente",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: DesignSystemColors.lightgrey),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
+            TextField(
+              controller: senha2Controller,
+              obscureText: true,
+              cursorColor: DesignSystemColors.lightgrey,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration("Digite sua senha novamente"),
             ),
             const SizedBox(height: 24),
 
-            // Botão Registrar
             SizedBox(
               width: double.infinity,
               height: 40,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  controller.email.value = emailController.text.trim();
+                  controller.senha.value = senhaController.text.trim();
+                  controller.nome.value = nomeController.text.trim();
+
+                  controller.isLoading.value = true;
+                  final result = await controller.registerUser();
+                  controller.isLoading.value = false;
+
+                  if (result == "success_register") {
+                    Get.snackbar(
+                      'Registro',
+                      "Registro realizado com sucesso! Faça login para continuar.",
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.black54,
+                      colorText: Colors.white,
+                    );
+                    controller.toggleForm(true); // Vai para a tela de login
+                  } else {
+                    Get.snackbar(
+                      'Registro',
+                      result,
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.black54,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  "Registrar",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Obx(
+                  () => controller.isLoading.value
+                      ? const CircularProgressIndicator(
+                          color: Colors.black,
+                          strokeWidth: 2,
+                        )
+                      : const Text(
+                          "Registrar",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: DesignSystemColors.lightgrey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: DesignSystemColors.lightgrey),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
 }

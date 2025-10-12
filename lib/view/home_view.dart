@@ -16,10 +16,19 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Olá, Usuario!",
-              style: TextStyle(fontSize: 20, color: Colors.white),
-            ),
+            Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              } else {
+                return Text(
+                  "Olá, ${controller.userName.value}!",
+                  style: const TextStyle(fontSize: 20, color: Colors.white),
+                );
+              }
+            }),
+
             SizedBox(height: 12),
             Align(alignment: AlignmentGeometry.center, child: SearchWidget()),
             SizedBox(height: 31),

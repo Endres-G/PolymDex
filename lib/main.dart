@@ -1,17 +1,16 @@
- 
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:polymdex/bindings/aplication_binding.dart';
+import 'package:polymdex/controllers/global_controller.dart';
 import 'package:polymdex/core/routes/app_pages.dart';
 import 'package:polymdex/core/routes/app_routes.dart';
 import 'package:polymdex/core/themes/design_system.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await AppEnv.loadEnv();
-  // print("Base URL carregada: ${AppEnv.baseUrl}");
-  // Get.put<GlobalController>(GlobalController(), permanent: true);
+
+  Get.put<GlobalController>(GlobalController(), permanent: true);
 
   runApp(const MyApp());
 }
@@ -28,13 +27,12 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       getPages: AppPages.pages,
       initialRoute: AppRoutes.splash,
-    theme: ThemeData.dark().copyWith(
-  scaffoldBackgroundColor: DesignSystemColors.black,
-  textTheme: GoogleFonts.poppinsTextTheme(
-    ThemeData.dark().textTheme,
-  ),)
-);
+      initialBinding: AplicationBinding(),
 
-     
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: DesignSystemColors.black,
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+      ),
+    );
   }
 }
