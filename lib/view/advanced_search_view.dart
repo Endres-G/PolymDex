@@ -19,6 +19,7 @@ class SearchView extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Botão de voltar
             IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Get.back(),
@@ -26,11 +27,13 @@ class SearchView extends GetView<HomeController> {
 
             const SizedBox(height: 12),
 
+            // Barra de pesquisa opcional
             if (showSearchBar) ...[
               const Center(child: SearchWidget()),
               const SizedBox(height: 28),
             ],
 
+            // Texto de título
             Align(
               alignment: showSearchBar
                   ? Alignment.centerLeft
@@ -42,12 +45,14 @@ class SearchView extends GetView<HomeController> {
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign
+                    .center, // mantém centralizado visualmente quando o Align é center
               ),
             ),
 
             const SizedBox(height: 16),
 
+            // Lista de resultados
             Expanded(
               child: ListView.builder(
                 itemCount: 5,
