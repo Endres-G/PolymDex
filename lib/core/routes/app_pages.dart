@@ -5,6 +5,7 @@ import 'package:polymdex/bindings/splash_binding.dart';
 import 'package:polymdex/core/routes/app_routes.dart';
 import 'package:polymdex/view/home_view.dart';
 import 'package:polymdex/view/login_view.dart';
+import 'package:polymdex/view/search_view.dart';
 import 'package:polymdex/view/splash_view.dart';
 
 class AppPages {
@@ -23,14 +24,15 @@ class AppPages {
       binding: LoginBindings(),
     ),
 
-    // GetPage(
-    //   name: AppRoutes.signUp,
-    //   page: () => const SignUpView(),
-    //   binding: SignUpBindings(),
-    // ),
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),
+      binding: HomeBinding(),
+    ),
+
+    GetPage(
+      name: AppRoutes.search,
+      page: () => const SearchView(),
       binding: HomeBinding(),
     ),
   ];
