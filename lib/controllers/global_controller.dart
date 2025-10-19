@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:isar/isar.dart';
 import 'package:polymdex/core/db/user_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,13 +12,14 @@ class GlobalController extends GetxController {
   final Rxn<UserSession> userSession = Rxn<UserSession>();
   final RxBool isLogged = false.obs;
 
+  late Isar isar;
+
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
-    loadUserSession();
+    await loadUserSession();
   }
 
-  /// Salva a sessão do usuário
   Future<void> saveUserSession(UserSession session) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyUserSession, jsonEncode(session.toJson()));
@@ -26,7 +28,6 @@ class GlobalController extends GetxController {
     print("Sessão salva: ${session.nome}, ID: ${session.id}");
   }
 
-  /// Carrega a sessão do usuário
   Future<void> loadUserSession() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_keyUserSession);

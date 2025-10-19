@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../core/db/isar_service.dart';
 import '../core/db/user_session.dart';
-import 'global_controller.dart'; // importe o GlobalController
+import 'global_controller.dart';
 
 class LoginController extends GetxController {
   final RxBool isLogin = true.obs;
@@ -13,7 +13,6 @@ class LoginController extends GetxController {
 
   final IsarService isarService = IsarService();
 
-  // Instância do GlobalController
   final GlobalController globalController = Get.find<GlobalController>();
 
   void toggleForm(bool login) {
@@ -34,14 +33,12 @@ class LoginController extends GetxController {
         print("Nome armazenado: ${session.nome}");
 
         if (session.senha == senha.value) {
-          // Atualiza o GlobalController, sem salvar a senha
           globalController.saveUserSession(
             UserSession()
-              ..id = session
-                  .id // <-- ID real vindo do banco
+              ..id = session.id
               ..email = session.email
               ..nome = session.nome
-              ..senha = '', // opcional, não salvar a senha globalmente
+              ..senha = '',
           );
 
           print(

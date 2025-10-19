@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:polymdex/core/db/product_model.dart';
 
 part 'user_session.g.dart';
 
@@ -10,6 +11,7 @@ class UserSession {
   String email = '';
   String senha = '';
   String nome = '';
+  final products = IsarLinks<ProductModel>();
 
   // Construtor vazio
   UserSession();

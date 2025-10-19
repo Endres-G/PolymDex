@@ -18,6 +18,10 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ElevatedButton(
+              onPressed: () => controller.sair(),
+              child: Text("sair"),
+            ),
             Obx(() {
               if (controller.isLoading.value) {
                 return const Center(

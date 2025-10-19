@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:polymdex/core/db/isar_service.dart';
+import 'package:polymdex/core/routes/app_routes.dart';
+import 'package:polymdex/core/services/navigation_service.dart';
 import 'global_controller.dart'; // importe seu GlobalController
 
 class HomeController extends GetxController {
@@ -15,6 +17,11 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     _loadUserNameSafe();
+  }
+
+  void sair() {
+    Get.find<GlobalController>().clearUserSession();
+    NavigationService.pageOffAndToNamed(AppRoutes.login);
   }
 
   /// Carrega o nome do usuário usando o ID salvo na sessão

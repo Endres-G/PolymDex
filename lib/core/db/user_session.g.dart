@@ -39,7 +39,14 @@ const UserSessionSchema = CollectionSchema(
   deserializeProp: _userSessionDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'products': LinkSchema(
+      id: 6895806019032660357,
+      name: r'products',
+      target: r'ProductModel',
+      single: false,
+    )
+  },
   embeddedSchemas: {},
   getId: _userSessionGetId,
   getLinks: _userSessionGetLinks,
@@ -107,12 +114,14 @@ Id _userSessionGetId(UserSession object) {
 }
 
 List<IsarLinkBase<dynamic>> _userSessionGetLinks(UserSession object) {
-  return [];
+  return [object.products];
 }
 
 void _userSessionAttach(
     IsarCollection<dynamic> col, Id id, UserSession object) {
   object.id = id;
+  object.products
+      .attach(col, col.isar.collection<ProductModel>(), r'products', id);
 }
 
 extension UserSessionQueryWhereSort
@@ -648,7 +657,68 @@ extension UserSessionQueryObject
     on QueryBuilder<UserSession, UserSession, QFilterCondition> {}
 
 extension UserSessionQueryLinks
-    on QueryBuilder<UserSession, UserSession, QFilterCondition> {}
+    on QueryBuilder<UserSession, UserSession, QFilterCondition> {
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition> products(
+      FilterQuery<ProductModel> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'products');
+    });
+  }
+
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition>
+      productsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'products', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition>
+      productsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'products', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition>
+      productsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'products', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition>
+      productsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'products', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition>
+      productsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'products', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<UserSession, UserSession, QAfterFilterCondition>
+      productsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'products', lower, includeLower, upper, includeUpper);
+    });
+  }
+}
 
 extension UserSessionQuerySortBy
     on QueryBuilder<UserSession, UserSession, QSortBy> {
