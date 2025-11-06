@@ -65,30 +65,36 @@ class HomeView extends GetView<HomeController> {
             Text("Oque está buscando?"),
             SizedBox(height: 12),
 
-            Container(
-              decoration: BoxDecoration(
-                color: DesignSystemColors.grey,
-                border: Border.all(color: DesignSystemColors.lightgrey),
-                borderRadius: BorderRadius.circular(32),
-              ),
-              width: 334,
-              height: 178,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.file_upload_outlined, size: 60),
-                  SizedBox(height: 8),
-                  Text("Carregar Novo Produto"),
-                ],
+            GestureDetector(
+              onTap: () {
+                NavigationService.pageToNamed(AppRoutes.createProduct);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: DesignSystemColors.grey,
+                  border: Border.all(color: DesignSystemColors.lightgrey),
+                  borderRadius: BorderRadius.circular(32),
+                ),
+                width: 334,
+                height: 178,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.file_upload_outlined, size: 60),
+                    SizedBox(height: 8),
+                    Text("Carregar Novo Produto"),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: 14),
             GestureDetector(
               onTap: () {
-                NavigationService.pageToNamed(
-                  AppRoutes.search,
-                  arguments: {'showSearchBar': false},
-                );
+                // NavigationService.pageToNamed(
+                //   AppRoutes.search,
+                //   arguments: {'showSearchBar': false},
+                // );
+                NavigationService.pageToNamed(AppRoutes.filters);
               },
               child: Container(
                 decoration: BoxDecoration(

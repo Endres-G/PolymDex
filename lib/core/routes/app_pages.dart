@@ -3,6 +3,8 @@ import 'package:polymdex/bindings/home_binding.dart';
 import 'package:polymdex/bindings/login_bindings.dart';
 import 'package:polymdex/bindings/splash_binding.dart';
 import 'package:polymdex/core/routes/app_routes.dart';
+import 'package:polymdex/view/product/create_product_view.dart';
+import 'package:polymdex/view/filters_view.dart';
 import 'package:polymdex/view/home_view.dart';
 import 'package:polymdex/view/login_view.dart';
 import 'package:polymdex/view/search_view.dart';
@@ -33,6 +35,17 @@ class AppPages {
     GetPage(
       name: AppRoutes.search,
       page: () => const SearchView(),
+      binding: HomeBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.filters,
+      page: () => const FiltersView(),
+      binding: HomeBinding(),
+    ),
+
+    GetPage(
+      name: AppRoutes.createProduct,
+      page: () => const CreateProductView(),
       binding: HomeBinding(),
     ),
   ];
