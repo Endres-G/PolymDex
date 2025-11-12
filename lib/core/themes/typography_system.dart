@@ -6,4 +6,9 @@ class TypographySystem {
     fontWeight: FontWeight.w400, // regular
     color: Colors.black,
   );
+  static const TextStyle wbuttonText = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400, // regular
+    color: Colors.white,
+  );
 }

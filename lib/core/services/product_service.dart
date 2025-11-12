@@ -7,22 +7,14 @@ import 'package:polymdex/core/db/user_session.dart';
 import 'package:polymdex/controllers/global_controller.dart';
 
 class ProductService extends GetxService {
-  // ---------------------------
-  // Instâncias
-  // ---------------------------
   final IsarService isarService = IsarService();
   final GlobalController globalController = Get.find<GlobalController>();
 
-  // ---------------------------
-  // Estado / Seleções
-  // ---------------------------
   final RxList<String> selections = <String>[].obs;
   final RxString selectedPolymer = ''.obs;
   final RxString selectedProducer = ''.obs;
+  final RxString grade = ''.obs;
 
-  // ---------------------------
-  // Dados estáticos
-  // ---------------------------
   final List<String> producers = [
     'Braskem',
     'ExxonMobil',
@@ -87,9 +79,30 @@ class ProductService extends GetxService {
   }
 
   // ---------------------------
+  // Métodos auxiliares
+  // ---------------------------
+  double? parseDouble(String key) {
+    final entry = selections.firstWhereOrNull((s) => s.startsWith('$key:'));
+    if (entry == null) return null;
+    return double.tryParse(entry.split(':').last.trim());
+  }
+
+  String? parseString(String key) {
+    final entry = selections.firstWhereOrNull((s) => s.startsWith('$key:'));
+    return entry?.split(':').last.trim();
+  }
+
+  bool? parseBool(String key) {
+    final entry = selections.firstWhereOrNull((s) => s.startsWith('$key:'));
+    if (entry == null) return null;
+    final value = entry.split(':').last.trim().toLowerCase();
+    return value == 'sim' || value == 'true';
+  }
+
+  // ---------------------------
   // Persistência no Isar
   // ---------------------------
-  Future<void> saveProduct() async {
+  Future<bool> saveProduct() async {
     try {
       final isar = await isarService.db;
       print('[ProductService] -> Salvando produto...');
@@ -97,22 +110,32 @@ class ProductService extends GetxService {
       final polymerName = selectedPolymer.value.isNotEmpty
           ? selectedPolymer.value
           : 'SEM_POLYMER';
-
       final producerName = selectedProducer.value.isNotEmpty
           ? selectedProducer.value
           : 'SEM_PRODUCER';
 
       final polymer = PolymerModel()..name = polymerName;
-
-      final product = ProductModel()
-        ..grade = 'Grade-$polymerName'
-        ..mi = 0.0
-        ..density = 0.0;
-
-      // define o produtor corretamente
       final producerModel = ProducerModel()..name = producerName;
-      product.producer.value = producerModel;
 
+      // --- Cria produto com base nas seleções ---
+      final product = ProductModel()
+        ..grade = grade.value.isNotEmpty ? grade.value : 'Grade-$polymerName'
+        ..mi = parseDouble('MI') ?? 0.0
+        ..density = parseDouble('Density') ?? 0.0
+        ..processingAid = parseBool('ProcessingAid')
+        ..antiblock = parseBool('Antiblock')
+        ..mwd = parseString('MWD')
+        ..comonomer = parseString('Comonomer')
+        ..comonomerContent = parseDouble('ComonomerContent')
+        ..additives = selections
+            .where((s) => s.startsWith('Additive:'))
+            .map((s) => s.split(':').last.trim())
+            .toList();
+
+      product.producer.value = producerModel;
+      product.polymer.value = polymer;
+
+      // --- Recupera usuário logado ---
       UserSession? dbUser;
       final session = globalController.userSession.value;
       if (session != null) {
@@ -130,30 +153,41 @@ class ProductService extends GetxService {
         }
       }
 
+      // --- Transação de gravação ---
       await isar.writeTxn(() async {
         final polymerId = await isar.polymerModels.put(polymer);
-        print('[ProductService] -> polymer saved id=$polymerId');
-
+        final producerId = await isar.producerModels.put(producerModel);
         final productId = await isar.productModels.put(product);
-        print('[ProductService] -> product saved id=$productId');
+
+        print(
+          '[ProductService] -> polymerId=$polymerId | producerId=$producerId | productId=$productId',
+        );
 
         await product.polymer.save();
+        await product.producer.save();
 
         if (dbUser != null) {
           dbUser.products.add(product);
           await dbUser.products.save();
           await isar.userSessions.put(dbUser);
           print(
-            '[ProductService] -> produto vinculado ao usuário ${dbUser.id}',
+            '[ProductService] -> Produto vinculado ao usuário ${dbUser.id}',
           );
         }
       });
 
+      print('[ProductService] ✅ Produto salvo com sucesso!');
+      print(
+        '[ProductService] -> Dados salvos: MI=${product.mi}, Density=${product.density}, Additives=${product.additives?.join(', ')}',
+      );
+
       Get.snackbar('Sucesso', 'Produto salvo com sucesso!');
+      return true;
     } catch (e, st) {
-      print('[ProductService] -> Erro: $e');
+      print('[ProductService] ❌ Erro ao salvar produto: $e');
       print(st);
       Get.snackbar('Erro', 'Falha ao salvar produto: $e');
+      return false;
     }
   }
 }

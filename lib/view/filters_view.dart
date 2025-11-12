@@ -63,12 +63,6 @@ class FiltersView extends GetView<HomeController> {
                     onPressed: () {
                       if (currentStep < steps.length - 1) {
                         controller.currentStep.value++;
-                      } else {
-                        Get.snackbar(
-                          'Filtros',
-                          'Todas as etapas concluídas',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polymdex/core/routes/app_routes.dart';
 import 'package:polymdex/core/services/navigation_service.dart';
@@ -11,12 +12,18 @@ class HomeController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString userName = 'Usuario'.obs;
   final RxInt currentStep = 0.obs;
-  final mi = 0.05.obs;
-  final density = 0.800.obs;
-
+  final RxDouble mi = 0.05.obs;
+  final RxDouble density = 0.800.obs;
+  final RxDouble comonomerContent = 0.0.obs;
+  final TextEditingController gradeController = TextEditingController();
+  final TextEditingController miController = TextEditingController();
+  final TextEditingController densityController = TextEditingController();
   @override
   void onInit() {
     super.onInit();
+    gradeController.text = productService.grade.value;
+    miController.text = mi.value.toStringAsFixed(2);
+    densityController.text = density.value.toStringAsFixed(3);
     _loadUserNameSafe();
   }
 

@@ -3,9 +3,10 @@ import 'package:get/get.dart';
 import 'package:polymdex/controllers/home_controller.dart';
 import 'package:polymdex/core/themes/design_system.dart';
 import 'package:polymdex/core/themes/typography_system.dart';
-import 'package:polymdex/view/filters_view.dart';
 import 'package:polymdex/view/product/step_1_view.dart';
 import 'package:polymdex/view/product/step_2_view.dart';
+import 'package:polymdex/view/product/step_3_view.dart';
+import 'package:polymdex/view/product/step_4_view.dart';
 
 class CreateProductView extends GetView<HomeController> {
   const CreateProductView({super.key});
@@ -14,8 +15,9 @@ class CreateProductView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final List<Widget> steps = [
       const PolymerStep(),
-      const MiDensityStep(), // 🔹 Step 2 substituído aqui
-      const StepPlaceholder(title: 'Step 3 - Additives', itemCount: 8),
+      const MiDensityStep(),
+      const AdditivesStep(),
+      const ComonomerStep(),
     ];
 
     return Scaffold(
@@ -36,11 +38,6 @@ class CreateProductView extends GetView<HomeController> {
             child: ElevatedButton(
               onPressed: () async {
                 await controller.saveProductToIsar();
-                Get.snackbar(
-                  'Sucesso',
-                  'Produto salvo no Isar!',
-                  snackPosition: SnackPosition.BOTTOM,
-                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[800],
@@ -74,18 +71,14 @@ class CreateProductView extends GetView<HomeController> {
                   height: 46,
                   width: 334,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (currentStep < steps.length - 1) {
                         controller.currentStep.value++;
                         print(
                           '[CreateProductView] -> Avançou para etapa ${controller.currentStep.value + 1}',
                         );
                       } else {
-                        Get.snackbar(
-                          'Etapas',
-                          'Todas as etapas concluídas',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
+                        await controller.saveProductToIsar();
                       }
                       print(
                         '[CreateProductView] -> Seleções até agora: ${controller.productService.selections.join(', ')}',
