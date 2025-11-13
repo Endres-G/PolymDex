@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:isar/isar.dart';
 import 'package:polymdex/core/db/isar_service.dart';
 import 'package:polymdex/core/db/polymer_model.dart';
 import 'package:polymdex/core/db/producer_model.dart';
@@ -76,6 +77,55 @@ class ProductService extends GetxService {
 
   void _printSelections() {
     print('[ProductService] -> Selections: ${selections.join(' | ')}');
+  }
+
+  // ---------------------------
+  // Consulta filtrada no Isar
+  // ---------------------------
+  Future<List<ProductModel>> getFilteredProducts() async {
+    final isar = await isarService.db;
+    print(
+      '[ProductService] 🔍 Iniciando busca com filtros: ${selections.join(" | ")}',
+    );
+
+    final mi = parseDouble('MI');
+    final density = parseDouble('Density');
+    final polymer = parseString('Polymer');
+    final producer = parseString('Producer');
+    final grade = parseString('Grade');
+    final comonomer = parseString('Comonomer');
+
+    // --- CORREÇÃO AQUI ---
+
+    // 1. Comece com .filter()
+    var query = isar.productModels.filter();
+
+    // 2. Use .optional() para encadear os filtros
+    final results = await query
+        .optional(mi != null, (q) => q.miEqualTo(mi!))
+        .optional(density != null, (q) => q.densityEqualTo(density!))
+        .optional(
+          polymer != null && polymer.isNotEmpty,
+          (q) => q.polymer((p) => p.nameEqualTo(polymer!)),
+        )
+        .optional(
+          producer != null && producer.isNotEmpty,
+          (q) => q.producer((p) => p.nameEqualTo(producer!)),
+        )
+        .optional(
+          grade != null && grade.isNotEmpty,
+          (q) => q.gradeEqualTo(grade!),
+        )
+        .optional(
+          comonomer != null && comonomer.isNotEmpty,
+          (q) => q.comonomerEqualTo(comonomer!),
+        )
+        .findAll(); // 3. Chame .findAll() no final
+
+    // --- FIM DA CORREÇÃO ---
+
+    print('[ProductService] ✅ ${results.length} produtos encontrados.');
+    return results;
   }
 
   // ---------------------------
@@ -189,5 +239,32 @@ class ProductService extends GetxService {
       Get.snackbar('Erro', 'Falha ao salvar produto: $e');
       return false;
     }
+  }
+
+  // ---------------------------
+  // Retorna todos os GRADES únicos
+  // ---------------------------
+  Future<List<String>> getAllGrades() async {
+    final isar = await isarService.db;
+
+    print('[ProductService] 🔍 Buscando todos os grades...');
+
+    // Busca todos os produtos e extrai apenas o campo grade
+    final grades = await isar.productModels
+        .where() // sem filtro
+        .gradeProperty() // pega apenas o campo grade
+        .findAll();
+
+    // Remove duplicatas e valores nulos/vazios
+    final uniqueGrades =
+        grades
+            .whereType<String>()
+            .where((g) => g.trim().isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort(); // opcional: ordena A-Z
+
+    print('[ProductService] ✅ ${uniqueGrades.length} grades encontrados.');
+    return uniqueGrades;
   }
 }

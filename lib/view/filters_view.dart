@@ -3,6 +3,10 @@ import 'package:get/get.dart';
 import 'package:polymdex/controllers/home_controller.dart';
 import 'package:polymdex/core/themes/design_system.dart';
 import 'package:polymdex/core/themes/typography_system.dart';
+import 'package:polymdex/view/product/step_1_view.dart';
+import 'package:polymdex/view/product/step_2_view.dart';
+import 'package:polymdex/view/product/step_3_view.dart';
+import 'package:polymdex/view/product/step_4_view.dart';
 
 class FiltersView extends GetView<HomeController> {
   const FiltersView({super.key});
@@ -10,9 +14,10 @@ class FiltersView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> steps = [
-      const StepPlaceholder(title: 'Step 1 - Polymers', itemCount: 12),
-      const StepPlaceholder(title: 'Step 2 - MI / Density', itemCount: 6),
-      const StepPlaceholder(title: 'Step 3 - Additives', itemCount: 8),
+      const PolymerStep(),
+      const MiDensityStep(isFilter: true),
+      const AdditivesStep(),
+      const ComonomerStep(),
     ];
 
     return Scaffold(
@@ -21,30 +26,62 @@ class FiltersView extends GetView<HomeController> {
         backgroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: controller.handleBack, // agora a lógica tá no controller
+          onPressed: controller.handleBack,
         ),
         title: const Text('Filtros', style: TextStyle(color: Colors.white)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: controller.isLoading.value
+                  ? null
+                  : () async {
+                      await controller.loadFilteredProducts();
+                    },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[800],
+                backgroundColor: DesignSystemColors.lightgrey,
                 shape: const StadiumBorder(),
               ),
-              child: const Text('Buscar'),
+              child: Obx(
+                () => controller.isLoading.value
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black,
+                        ),
+                      )
+                    : const Text(
+                        'Buscar',
+                        style: TextStyle(color: Colors.black),
+                      ),
+              ),
             ),
           ),
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Obx(() {
-            final currentStep = controller.currentStep.value;
+        child: Obx(() {
+          final currentStep = controller.currentStep.value;
+          final isLastStep = currentStep == steps.length - 1;
 
-            return Column(
+          // Se estiver carregando produtos, mostra o indicador
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          // Se houver resultados filtrados, mostra lista
+          if (controller.filteredProducts.isNotEmpty && isLastStep) {
+            return _FilteredProductsList();
+          }
+
+          // Caso contrário, mostra as etapas de filtro
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
@@ -56,13 +93,17 @@ class FiltersView extends GetView<HomeController> {
                 const SizedBox(height: 12),
 
                 Expanded(child: steps[currentStep]),
+
+                const SizedBox(height: 12),
                 SizedBox(
                   height: 46,
                   width: 334,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (currentStep < steps.length - 1) {
                         controller.currentStep.value++;
+                      } else {
+                        await controller.loadFilteredProducts();
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -72,20 +113,18 @@ class FiltersView extends GetView<HomeController> {
                     child: Text(
                       currentStep < steps.length - 1
                           ? 'Próxima etapa'
-                          : 'Finalizar',
+                          : 'Buscar Produtos',
                       style: TypographySystem.buttonText,
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 _StepIndicator(current: currentStep, total: steps.length),
-
                 const SizedBox(height: 12),
               ],
-            );
-          }),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -117,56 +156,47 @@ class _StepIndicator extends StatelessWidget {
   }
 }
 
-class StepPlaceholder extends StatelessWidget {
-  final String title;
-  final int itemCount;
-  const StepPlaceholder({
-    required this.title,
-    required this.itemCount,
-    super.key,
-  });
+class _FilteredProductsList extends GetView<HomeController> {
+  const _FilteredProductsList({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final items = List.generate(itemCount, (i) => 'Lorem ipsum ${i + 1}');
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
+    final products = controller.filteredProducts;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white, fontSize: 18),
+          const Text(
+            'Resultados da busca:',
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: items.map((t) => _placeholderChip(t)).toList(),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Descrição (placeholder)',
-            style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero.',
-            style: TextStyle(color: Colors.white38),
+          Expanded(
+            child: ListView.separated(
+              itemCount: products.length,
+              separatorBuilder: (_, __) => const Divider(color: Colors.white24),
+              itemBuilder: (_, i) {
+                final p = products[i];
+                return ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  tileColor: Colors.grey[900],
+                  title: Text(
+                    p.grade ?? 'Sem grade',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    'MI: ${p.mi} | Densidade: ${p.density}',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _placeholderChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        border: Border.all(color: Colors.grey[700]!),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(label, style: const TextStyle(color: Colors.white70)),
     );
   }
 }

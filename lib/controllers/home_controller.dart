@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polymdex/core/db/product_model.dart';
 import 'package:polymdex/core/routes/app_routes.dart';
 import 'package:polymdex/core/services/navigation_service.dart';
 import 'package:polymdex/controllers/global_controller.dart';
@@ -18,6 +19,9 @@ class HomeController extends GetxController {
   final TextEditingController gradeController = TextEditingController();
   final TextEditingController miController = TextEditingController();
   final TextEditingController densityController = TextEditingController();
+  final RxList<ProductModel> filteredProducts = <ProductModel>[].obs;
+  final RxList<String> allGrades = <String>[].obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -25,6 +29,24 @@ class HomeController extends GetxController {
     miController.text = mi.value.toStringAsFixed(2);
     densityController.text = density.value.toStringAsFixed(3);
     _loadUserNameSafe();
+  }
+
+  Future<void> loadGrades() async {
+    final grades = await productService.getAllGrades();
+    allGrades.assignAll(grades);
+  }
+
+  Future<void> loadFilteredProducts() async {
+    isLoading.value = true;
+    try {
+      final results = await productService.getFilteredProducts();
+      filteredProducts.assignAll(results);
+    } catch (e) {
+      print('[HomeController] ❌ Erro ao buscar produtos filtrados: $e');
+      Get.snackbar('Erro', 'Falha ao buscar produtos: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void handleBack() {

@@ -15,7 +15,7 @@ class CreateProductView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final List<Widget> steps = [
       const PolymerStep(),
-      const MiDensityStep(),
+      const MiDensityStep(isFilter: false),
       const AdditivesStep(),
       const ComonomerStep(),
     ];
