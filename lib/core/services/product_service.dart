@@ -6,6 +6,8 @@ import 'package:polymdex/core/db/producer_model.dart';
 import 'package:polymdex/core/db/product_model.dart';
 import 'package:polymdex/core/db/user_session.dart';
 import 'package:polymdex/controllers/global_controller.dart';
+import 'package:polymdex/core/routes/app_routes.dart';
+import 'package:polymdex/core/services/navigation_service.dart';
 
 class ProductService extends GetxService {
   final IsarService isarService = IsarService();
@@ -125,7 +127,33 @@ class ProductService extends GetxService {
     // --- FIM DA CORREÇÃO ---
 
     print('[ProductService] ✅ ${results.length} produtos encontrados.');
+    NavigationService.pageToNamed(
+      AppRoutes.search,
+      arguments: {'showSearchBar': false},
+    );
     return results;
+  }
+
+  Future<List<ProductModel>> searchByGrade(String query) async {
+    if (query.isEmpty) return [];
+
+    try {
+      final isar = await isarService.db;
+
+      final results = await isar.productModels
+          .filter()
+          .gradeContains(query, caseSensitive: false)
+          .findAll();
+
+      print(
+        '[ProductService] 🔍 ${results.length} produtos encontrados para "$query"',
+      );
+      return results;
+    } catch (e, st) {
+      print('[ProductService] ❌ Erro ao buscar produtos por grade: $e');
+      print(st);
+      return [];
+    }
   }
 
   // ---------------------------

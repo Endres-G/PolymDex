@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:polymdex/core/themes/design_system.dart';
+import 'package:polymdex/core/db/product_model.dart';
 
 class DataContainerWidget extends StatefulWidget {
-  const DataContainerWidget({super.key});
+  final ProductModel product;
+
+  const DataContainerWidget({super.key, required this.product});
 
   @override
   State<DataContainerWidget> createState() => _DataContainerWidgetState();
 }
 
 class _DataContainerWidgetState extends State<DataContainerWidget> {
-  // NEW: State variable to control the expansion
   bool _isExpanded = false;
 
-  // NEW: Helper method to build the text with a label and value
   Widget _buildInfoText(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
@@ -22,7 +23,7 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
             color: Colors.white70,
             fontSize: 13,
             height: 1.3,
-            fontFamily: 'your_font_family', // Ensure you use the same font
+            fontFamily: 'your_font_family',
           ),
           children: [
             TextSpan(
@@ -38,13 +39,10 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final product = widget.product;
+
     return GestureDetector(
-      // NEW: Tapping the container will toggle the expanded state
-      onTap: () {
-        setState(() {
-          _isExpanded = !_isExpanded;
-        });
-      },
+      onTap: () => setState(() => _isExpanded = !_isExpanded),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -57,32 +55,30 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // This part remains the same
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Poliestireno',
-                  style: TextStyle(
+                  product.grade,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  'ID: 58158',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  'ID: ${product.id}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            // The initial information
-            _buildInfoText('Densidade', '1,05 g/cm³'),
-            _buildInfoText('MFI', '25 g/10 min'),
+            _buildInfoText('Densidade', product.density.toStringAsFixed(3)),
+            _buildInfoText('MFI', product.mi.toStringAsFixed(2)),
 
             AnimatedCrossFade(
               firstChild: Container(),
-              secondChild: _buildExpandedContent(),
+              secondChild: _buildExpandedContent(product),
               crossFadeState: _isExpanded
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
@@ -94,36 +90,38 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
     );
   }
 
-  Widget _buildExpandedContent() {
+  Widget _buildExpandedContent(ProductModel product) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        _buildInfoText('Aplicação', 'sacola, roupa'),
-        _buildInfoText('Família', '1,05 g/cm³'),
-        _buildInfoText('Tipo de polimero', 'Tipo A'),
-        _buildInfoText('Tecnologia', '1'),
-        _buildInfoText('Aditivo', 'sem'),
+        _buildInfoText('Comonomer', product.comonomer ?? '-'),
+        _buildInfoText(
+          'Comonomer Content',
+          product.comonomerContent?.toStringAsFixed(3) ?? '-',
+        ),
+        _buildInfoText('MWD', product.mwd ?? '-'),
+        _buildInfoText(
+          'Processing Aid',
+          product.processingAid == true ? 'Sim' : 'Não',
+        ),
+        _buildInfoText('Antiblock', product.antiblock == true ? 'Sim' : 'Não'),
+        _buildInfoText('Additives', product.additives?.join(', ') ?? '-'),
         const SizedBox(height: 16),
-        // The "Open Document" button
         Align(
-          alignment: AlignmentGeometry.bottomLeft,
+          alignment: Alignment.bottomLeft,
           child: Container(
             decoration: BoxDecoration(
               color: DesignSystemColors.grey.withOpacity(0.8),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white24, // mesma cor da borda do container
-                width: 1,
-              ),
+              border: Border.all(color: Colors.white24, width: 1),
             ),
             child: TextButton(
               onPressed: () {
                 print('Abrir Documento tapped!');
               },
               style: TextButton.styleFrom(
-                backgroundColor:
-                    Colors.transparent, // deixa o container definir a cor
+                backgroundColor: Colors.transparent,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 12,

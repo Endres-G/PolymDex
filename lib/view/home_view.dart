@@ -45,22 +45,28 @@ class HomeView extends GetView<HomeController> {
                     arguments: {'showSearchBar': true},
                   );
                 },
-                child: const SearchWidget(),
+                child: const SearchWidget(isInHome: true),
               ),
             ),
 
             SizedBox(height: 31),
-            Text("Buscas Recentes"),
+            Text("Buscas Rápida"),
             SizedBox(height: 8),
 
             Row(
               children: [
-                RecentSearchWidget(productName: "Polysesr"),
-                SizedBox(width: 8),
-
-                RecentSearchWidget(productName: "polyesterds"),
+                GestureDetector(
+                  onTap: () => controller.searchByPolymer('PP'),
+                  child: const RecentSearchWidget(productName: "PP"),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => controller.searchByPolymer('PE'),
+                  child: const RecentSearchWidget(productName: "PE"),
+                ),
               ],
             ),
+
             SizedBox(height: 25),
             Text("Oque está buscando?"),
             SizedBox(height: 12),
@@ -90,10 +96,6 @@ class HomeView extends GetView<HomeController> {
             SizedBox(height: 14),
             GestureDetector(
               onTap: () {
-                // NavigationService.pageToNamed(
-                //   AppRoutes.search,
-                //   arguments: {'showSearchBar': false},
-                // );
                 NavigationService.pageToNamed(AppRoutes.filters);
               },
               child: Container(

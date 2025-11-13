@@ -40,10 +40,13 @@ class CreateProductView extends GetView<HomeController> {
                 await controller.saveProductToIsar();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[800],
+                backgroundColor: DesignSystemColors.lightgrey,
                 shape: const StadiumBorder(),
               ),
-              child: const Text('Buscar'),
+              child: const Text(
+                'Salvar',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ),
         ],

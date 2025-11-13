@@ -10,56 +10,89 @@ class SearchView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showSearchBar = Get.arguments?['showSearchBar'] ?? true;
+    // 🔹 Pegamos a flag diretamente dos argumentos, mas deixamos default = false
+    final bool showSearchBar = Get.arguments?['showSearchBar'] ?? false;
 
     return Scaffold(
       backgroundColor: DesignSystemColors.black,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Get.back(),
-            ),
-
-            const SizedBox(height: 12),
-
-            if (showSearchBar) ...[
-              const Center(child: SearchWidget()),
-              const SizedBox(height: 28),
-            ],
-
-            Align(
-              alignment: showSearchBar
-                  ? Alignment.centerLeft
-                  : Alignment.center,
-              child: const Text(
-                'Produtos com as características filtradas:',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Expanded(
-              child: ListView.builder(
-                itemCount: 5,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: DataContainerWidget(),
-                  );
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🔹 Botão voltar
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  controller.filteredProducts.clear();
+                  Get.back();
                 },
               ),
-            ),
-          ],
+
+              const SizedBox(height: 12),
+
+              // 🔹 Campo de busca opcional
+              if (showSearchBar) ...[
+                const Center(child: SearchWidget(isInHome: false)),
+                const SizedBox(height: 28),
+              ],
+
+              Align(
+                alignment: showSearchBar
+                    ? Alignment.centerLeft
+                    : Alignment.center,
+                child: const Text(
+                  'Produtos com as características filtradas:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🔹 Lista observável
+              Expanded(
+                child: Obx(() {
+                  final products = controller.filteredProducts;
+
+                  debugPrint(
+                    '[SearchView] 📦 Produtos visíveis: ${products.length}',
+                  );
+
+                  if (controller.isLoading.value) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  }
+
+                  if (products.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'Nenhum produto encontrado.',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    itemCount: products.length,
+                    separatorBuilder: (_, __) => const SizedBox(
+                      height: 16,
+                    ), // 🔹 espaçamento entre cards
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return DataContainerWidget(product: product);
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -94,10 +94,96 @@ class HomeController extends GetxController {
     }
   }
 
+  // 🔎 Busca produtos por grade (usando o service)
+  Future<void> searchByGrade(String query) async {
+    if (query.isEmpty) {
+      filteredProducts.clear();
+      return;
+    }
+
+    isLoading.value = true;
+
+    final results = await productService.searchByGrade(query);
+    filteredProducts.assignAll(results);
+
+    isLoading.value = false;
+  }
+
+  /// Retorna todos os grades
+  Future<List<String>> getAllGrades() async {
+    return await productService.getAllGrades();
+  }
+
+  /// Chama a filtragem geral (com filtros compostos)
+  Future<void> filterProducts() async {
+    isLoading.value = true;
+    final results = await productService.getFilteredProducts();
+    filteredProducts.assignAll(results);
+    isLoading.value = false;
+  }
+
+  /// Salva novo produto
+  Future<void> saveProduct() async {
+    await productService.saveProduct();
+  }
+
+  Future<void> searchByPolymer(String polymer) async {
+    isLoading.value = true;
+    try {
+      productService.selections.clear();
+      productService.addSelection('Polymer', polymer);
+
+      final results = await productService.getFilteredProducts();
+
+      // salva direto no controller
+      filteredProducts.assignAll(results);
+
+      // navega para a tela
+      NavigationService.pageToNamed(AppRoutes.search);
+
+      print(
+        '[HomeController] 🧮 ${filteredProducts.length} produtos carregados',
+      );
+    } catch (e) {
+      print('[HomeController] ❌ Erro ao buscar produtos de $polymer: $e');
+      Get.snackbar('Erro', 'Falha ao buscar produtos de $polymer');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> saveProductToIsar() async {
     isLoading.value = true;
-    await productService.saveProduct();
-    isLoading.value = false;
+    try {
+      await productService.saveProduct();
+
+      // depois de salvar, limpa os campos e resetas os valores
+      _disposeFormData();
+
+      // navega de volta pra home
+      NavigationService.pageOffAndToNamed(AppRoutes.home);
+    } catch (e) {
+      print('[HomeController] ❌ Erro ao salvar produto: $e');
+      Get.snackbar('Erro', 'Falha ao salvar produto: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // método privado que reseta os dados do formulário
+  void _disposeFormData() {
+    gradeController.clear();
+    miController.clear();
+    densityController.clear();
+
+    mi.value = 0.05;
+    density.value = 0.800;
+    comonomerContent.value = 0.0;
+
+    currentStep.value = 0;
+    filteredProducts.clear();
+    productService.selections.clear();
+    productService.grade.value = '';
   }
 
   Future<void> _loadUserNameSafe() async {
