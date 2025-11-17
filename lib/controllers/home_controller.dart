@@ -25,10 +25,18 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    // carrega inicial
+    _loadUserNameSafe();
+
+    // fica ouvindo mudanças no userSession
+    ever(globalController.userSession, (_) {
+      _loadUserNameSafe();
+    });
+
     gradeController.text = productService.grade.value;
     miController.text = mi.value.toStringAsFixed(2);
     densityController.text = density.value.toStringAsFixed(3);
-    _loadUserNameSafe();
   }
 
   Future<void> loadGrades() async {

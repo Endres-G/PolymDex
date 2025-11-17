@@ -12,153 +12,161 @@ class LoginFormWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<LoginController>();
 
-    final emailController = TextEditingController();
-    final senhaController = TextEditingController();
+    return Expanded(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
 
-    return Center(
-      child: Container(
-        width: 320,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: DesignSystemColors.grey,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // EMAIL
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: const Text("Email", style: TextStyle(color: Colors.white)),
+        child: Center(
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: DesignSystemColors.grey,
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: emailController,
-              cursorColor: DesignSystemColors.lightgrey,
-              decoration: InputDecoration(
-                hintText: "Digite seu email",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // EMAIL -------------------
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: const Text(
+                    "Email",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
+                const SizedBox(height: 8),
 
-            const SizedBox(height: 16),
-
-            // SENHA
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: const Text("Senha", style: TextStyle(color: Colors.white)),
-            ),
-            const SizedBox(height: 8),
-            Obx(
-              () => TextField(
-                controller: senhaController,
-                obscureText: !controller.isPasswordVisible.value,
-                cursorColor: DesignSystemColors.lightgrey,
-                decoration: InputDecoration(
-                  hintText: "Digite sua senha",
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isPasswordVisible.value
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                TextField(
+                  controller: controller.emailCtrl,
+                  cursorColor: DesignSystemColors.lightgrey,
+                  decoration: InputDecoration(
+                    hintText: "Digite seu email",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    onPressed: () => controller.isPasswordVisible.value =
-                        !controller.isPasswordVisible.value,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: DesignSystemColors.lightgrey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: DesignSystemColors.lightgrey,
+                      ),
+                    ),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(color: Colors.white),
+                ),
+
+                const SizedBox(height: 16),
+
+                // SENHA ---------------------
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: const Text(
+                    "Senha",
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
+                const SizedBox(height: 8),
 
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: () async {
-                  controller.isLoading.value = true;
-
-                  // Preenche email e senha
-                  controller.email.value = emailController.text.trim();
-                  controller.senha.value = senhaController.text.trim();
-
-                  String result;
-
-                  if (controller.isLogin.value) {
-                    // LOGIN
-                    result = await controller.loginUser();
-
-                    if (result == "success_login") {
-                      // Navega para Home
-                      NavigationService.pageOffAndToNamed(AppRoutes.home);
-
-                      // Snack de sucesso
-                      Get.snackbar(
-                        "Login",
-                        "Bem-vindo, login com sucesso!",
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    } else {
-                      // Snack de erro
-                      Get.snackbar(
-                        "Login",
-                        result,
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    }
-                  } else {
-                    // REGISTRO
-                    // Pega nome do usuário como prefixo do email, exemplo
-                    controller.nome.value = emailController.text.split('@')[0];
-
-                    result = await controller.registerUser();
-
-                    if (result == "success_register") {
-                      controller.toggleForm(true); // volta para login
-
-                      Get.snackbar(
-                        "Registro",
-                        "Registrado com sucesso! Faça login.",
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    } else {
-                      Get.snackbar(
-                        "Registro",
-                        result,
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    }
-                  }
-
-                  controller.isLoading.value = false;
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Obx(
-                  () => controller.isLoading.value
-                      ? const CircularProgressIndicator(
-                          color: Colors.black,
-                          strokeWidth: 2,
-                        )
-                      : Text(
-                          controller.isLogin.value ? "Logar" : "Registrar",
-                          style: const TextStyle(color: Colors.black),
+                Obx(
+                  () => TextField(
+                    controller: controller.senhaCtrl,
+                    obscureText: !controller.isPasswordVisible.value,
+                    cursorColor: DesignSystemColors.lightgrey,
+                    decoration: InputDecoration(
+                      hintText: "Digite sua senha",
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.isPasswordVisible.value
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.white,
                         ),
+                        onPressed: () {
+                          controller.isPasswordVisible.value =
+                              !controller.isPasswordVisible.value;
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: DesignSystemColors.lightgrey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: DesignSystemColors.lightgrey,
+                        ),
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
-              ),
+
+                const SizedBox(height: 24),
+
+                // BOTÃO ---------------------
+                SizedBox(
+                  width: double.infinity,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      controller.isLoading.value = true;
+
+                      final result = await controller.loginUser();
+
+                      controller.isLoading.value = false;
+
+                      if (result == "success_login") {
+                        NavigationService.pageOffAndToNamed(AppRoutes.home);
+
+                        Get.snackbar(
+                          "Login",
+                          "Bem-vindo!",
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      } else {
+                        Get.snackbar(
+                          "Erro ao logar",
+                          result,
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Obx(
+                      () => controller.isLoading.value
+                          ? const CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            )
+                          : const Text(
+                              "Logar",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

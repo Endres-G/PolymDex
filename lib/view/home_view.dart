@@ -13,110 +13,125 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 108, horizontal: 33),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ElevatedButton(
-              onPressed: () => controller.sair(),
-              child: Text("sair"),
-            ),
-            Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              } else {
-                return Text(
-                  "Olá, ${controller.userName.value}!",
-                  style: const TextStyle(fontSize: 20, color: Colors.white),
-                );
-              }
-            }),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 33),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Botão sair
+              ElevatedButton(
+                onPressed: () => controller.sair(),
+                child: Text("sair"),
+              ),
 
-            SizedBox(height: 12),
-            Align(
-              alignment: Alignment.center,
-              child: GestureDetector(
-                onTap: () {
-                  NavigationService.pageToNamed(
-                    AppRoutes.search,
-                    arguments: {'showSearchBar': true},
+              // Saudação
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
                   );
+                } else {
+                  return Text(
+                    "Olá, ${controller.userName.value}!",
+                    style: const TextStyle(fontSize: 20, color: Colors.white),
+                  );
+                }
+              }),
+
+              const SizedBox(height: 12),
+
+              // Barra de busca
+              Align(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  onTap: () {
+                    NavigationService.pageToNamed(
+                      AppRoutes.search,
+                      arguments: {'showSearchBar': true},
+                    );
+                  },
+                  child: const SearchWidget(isInHome: true),
+                ),
+              ),
+
+              const SizedBox(height: 31),
+
+              // Section "Buscas Rápidas"
+              Text("Buscas Rápida", style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => controller.searchByPolymer('PP'),
+                    child: const RecentSearchWidget(productName: "PP"),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => controller.searchByPolymer('PE'),
+                    child: const RecentSearchWidget(productName: "PE"),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              Text(
+                "O que está buscando?",
+                style: TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 12),
+
+              GestureDetector(
+                onTap: () {
+                  NavigationService.pageToNamed(AppRoutes.createProduct);
                 },
-                child: const SearchWidget(isInHome: true),
-              ),
-            ),
-
-            SizedBox(height: 31),
-            Text("Buscas Rápida"),
-            SizedBox(height: 8),
-
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () => controller.searchByPolymer('PP'),
-                  child: const RecentSearchWidget(productName: "PP"),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => controller.searchByPolymer('PE'),
-                  child: const RecentSearchWidget(productName: "PE"),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 25),
-            Text("Oque está buscando?"),
-            SizedBox(height: 12),
-
-            GestureDetector(
-              onTap: () {
-                NavigationService.pageToNamed(AppRoutes.createProduct);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: DesignSystemColors.grey,
-                  border: Border.all(color: DesignSystemColors.lightgrey),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                width: 334,
-                height: 178,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.file_upload_outlined, size: 60),
-                    SizedBox(height: 8),
-                    Text("Carregar Novo Produto"),
-                  ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: DesignSystemColors.grey,
+                    border: Border.all(color: DesignSystemColors.lightgrey),
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  width: 334,
+                  height: 178,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.file_upload_outlined, size: 60),
+                      SizedBox(height: 8),
+                      Text("Carregar Novo Produto"),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 14),
-            GestureDetector(
-              onTap: () {
-                NavigationService.pageToNamed(AppRoutes.filters);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: DesignSystemColors.grey,
-                  border: Border.all(color: DesignSystemColors.lightgrey),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                width: 334,
-                height: 178,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.filter_alt_outlined, size: 60),
-                    SizedBox(height: 8),
-                    Text("Pesquisa avançada"),
-                  ],
+              SizedBox(height: 14),
+              GestureDetector(
+                onTap: () {
+                  NavigationService.pageToNamed(AppRoutes.filters);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: DesignSystemColors.grey,
+                    border: Border.all(color: DesignSystemColors.lightgrey),
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  width: 334,
+                  height: 178,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.filter_alt_outlined, size: 60),
+                      SizedBox(height: 8),
+                      Text("Pesquisa avançada"),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );

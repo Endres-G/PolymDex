@@ -14,7 +14,7 @@ class LoginView extends GetView<LoginController> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 250),
+              padding: const EdgeInsets.only(top: 200),
               child: Obx(
                 () => Row(
                   mainAxisAlignment: MainAxisAlignment.center,
