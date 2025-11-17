@@ -14,29 +14,6 @@ class DataContainerWidget extends StatefulWidget {
 class _DataContainerWidgetState extends State<DataContainerWidget> {
   bool _isExpanded = false;
 
-  Widget _buildInfoText(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 13,
-            height: 1.3,
-            fontFamily: 'your_font_family',
-          ),
-          children: [
-            TextSpan(
-              text: '$label: ',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            TextSpan(text: value),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
@@ -44,7 +21,7 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
     return GestureDetector(
       onTap: () => setState(() => _isExpanded = !_isExpanded),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -55,34 +32,32 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  product.grade,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+            // 🔹 CARD FECHADO — TUDO EM UMA ÚNICA ROW
+            if (!_isExpanded)
+              Row(
+                children: [
+                  _cell(product.grade, width: 110, bold: true),
+                  _cell(product.mi.toStringAsFixed(2), width: 70),
+                  _cell(product.density.toStringAsFixed(3), width: 70),
+                  _cell(product.comonomer ?? "-", width: 60),
+                  Expanded(
+                    child: Text(
+                      product.additives?.join("/") ?? "-",
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                Text(
-                  'ID: ${product.id}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoText('Densidade', product.density.toStringAsFixed(3)),
-            _buildInfoText('MFI', product.mi.toStringAsFixed(2)),
+                ],
+              ),
 
+            // 🔹 EXPANDIDO — MOSTRA DETALHES COMPLETOS
             AnimatedCrossFade(
               firstChild: Container(),
-              secondChild: _buildExpandedContent(product),
+              secondChild: _buildExpanded(product),
               crossFadeState: _isExpanded
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 150),
+              duration: const Duration(milliseconds: 250),
             ),
           ],
         ),
@@ -90,53 +65,68 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
     );
   }
 
-  Widget _buildExpandedContent(ProductModel product) {
+  Widget _cell(String text, {double width = 70, bool bold = false}) {
+    return SizedBox(
+      width: width,
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildExpanded(ProductModel product) {
+    Widget info(String title, String value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: RichText(
+          text: TextSpan(
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+            children: [
+              TextSpan(
+                text: "$title: ",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: value),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 4),
-        _buildInfoText('Comonomer', product.comonomer ?? '-'),
-        _buildInfoText(
-          'Comonomer Content',
-          product.comonomerContent?.toStringAsFixed(3) ?? '-',
+        const SizedBox(height: 14),
+        info("Comonomer", product.comonomer ?? "-"),
+        info(
+          "Comonomer Content",
+          product.comonomerContent?.toStringAsFixed(3) ?? "-",
         ),
-        _buildInfoText('MWD', product.mwd ?? '-'),
-        _buildInfoText(
-          'Processing Aid',
-          product.processingAid == true ? 'Sim' : 'Não',
-        ),
-        _buildInfoText('Antiblock', product.antiblock == true ? 'Sim' : 'Não'),
-        _buildInfoText('Additives', product.additives?.join(', ') ?? '-'),
+        info("MWD", product.mwd ?? "-"),
+        info("Processing Aid", product.processingAid == true ? "Sim" : "Não"),
+        info("Antiblock", product.antiblock == true ? "Sim" : "Não"),
+        info("Additives", product.additives?.join(", ") ?? "-"),
+
         const SizedBox(height: 16),
         Align(
-          alignment: Alignment.bottomLeft,
+          alignment: Alignment.centerLeft,
           child: Container(
             decoration: BoxDecoration(
               color: DesignSystemColors.grey.withOpacity(0.8),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white24, width: 1),
+              border: Border.all(color: Colors.white24),
             ),
             child: TextButton(
-              onPressed: () {
-                print('Abrir Documento tapped!');
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              onPressed: () {},
               child: const Text(
-                'Abrir Documento',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                "Abrir Documento",
+                style: TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ),
