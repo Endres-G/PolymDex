@@ -23,4 +23,6 @@ class ProductModel {
   String? mwd; // Ex: Narrow-Monomodal
   String? comonomer; // Ex: 1-Butene/1-Hexene/Propene
   double? comonomerContent; // Ex: 1.547
+  String? documentPath;
+  String? documentName;
 }

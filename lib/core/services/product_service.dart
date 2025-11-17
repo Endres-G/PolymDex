@@ -1,5 +1,10 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:polymdex/controllers/home_controller.dart';
 import 'package:polymdex/core/db/isar_service.dart';
 import 'package:polymdex/core/db/polymer_model.dart';
 import 'package:polymdex/core/db/producer_model.dart';
@@ -134,6 +139,21 @@ class ProductService extends GetxService {
     return results;
   }
 
+  Future<Map<String, String>?> saveDocumentInternally(PlatformFile file) async {
+    if (file.path == null) return null;
+
+    final originalFile = File(file.path!);
+
+    final dir = await getApplicationDocumentsDirectory();
+    final savedPath = '${dir.path}/${file.name}';
+
+    await originalFile.copy(savedPath);
+
+    print('[ProductService] 📄 Documento salvo internamente: $savedPath');
+
+    return {'path': savedPath, 'name': file.name};
+  }
+
   Future<List<ProductModel>> searchByGrade(String query) async {
     if (query.isEmpty) return [];
 
@@ -213,6 +233,18 @@ class ProductService extends GetxService {
       product.producer.value = producerModel;
       product.polymer.value = polymer;
 
+      // --- Salvar documento internamente, se houver ---
+      final homeController = Get.find<HomeController>();
+
+      final doc = await saveDocumentInternally(
+        homeController.selectedDocumentFile!,
+      );
+
+      if (doc != null) {
+        product.documentPath = doc['path'];
+        product.documentName = doc['name'];
+        print('[ProductService] 📄 Documento associado ao produto.');
+      }
       // --- Recupera usuário logado ---
       UserSession? dbUser;
       final session = globalController.userSession.value;

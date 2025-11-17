@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polymdex/core/db/product_model.dart';
@@ -21,6 +24,9 @@ class HomeController extends GetxController {
   final TextEditingController densityController = TextEditingController();
   final RxList<ProductModel> filteredProducts = <ProductModel>[].obs;
   final RxList<String> allGrades = <String>[].obs;
+  final selectedDocument = Rxn<File>();
+  final selectedDocumentName = RxnString();
+  PlatformFile? selectedDocumentFile;
 
   @override
   void onInit() {
@@ -37,6 +43,10 @@ class HomeController extends GetxController {
     gradeController.text = productService.grade.value;
     miController.text = mi.value.toStringAsFixed(2);
     densityController.text = density.value.toStringAsFixed(3);
+  }
+
+  void setDocumentFile(PlatformFile file) {
+    selectedDocumentFile = file;
   }
 
   Future<void> loadGrades() async {

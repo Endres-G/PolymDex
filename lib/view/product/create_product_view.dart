@@ -7,6 +7,7 @@ import 'package:polymdex/view/product/step_1_view.dart';
 import 'package:polymdex/view/product/step_2_view.dart';
 import 'package:polymdex/view/product/step_3_view.dart';
 import 'package:polymdex/view/product/step_4_view.dart';
+import 'package:polymdex/view/product/step_5_view.dart';
 
 class CreateProductView extends GetView<HomeController> {
   const CreateProductView({super.key});
@@ -18,6 +19,7 @@ class CreateProductView extends GetView<HomeController> {
       const MiDensityStep(isFilter: false),
       const AdditivesStep(),
       const ComonomerStep(),
+      const DocumentStep(),
     ];
 
     return Scaffold(
