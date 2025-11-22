@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:polymdex/controllers/home_controller.dart';
 import 'package:polymdex/core/themes/design_system.dart';
 import 'package:polymdex/core/db/product_model.dart';
 
@@ -17,7 +19,6 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
-
     return GestureDetector(
       onTap: () => setState(() => _isExpanded = !_isExpanded),
       child: AnimatedContainer(
@@ -81,6 +82,8 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
   }
 
   Widget _buildExpanded(ProductModel product) {
+    final controller = Get.find<HomeController>();
+
     Widget info(String title, String value) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
@@ -123,7 +126,10 @@ class _DataContainerWidgetState extends State<DataContainerWidget> {
               border: Border.all(color: Colors.white24),
             ),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                print(product.id);
+                controller.openProductDocument(product.id);
+              },
               child: const Text(
                 "Abrir Documento",
                 style: TextStyle(color: Colors.white, fontSize: 14),

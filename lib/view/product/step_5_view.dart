@@ -31,8 +31,11 @@ class DocumentStep extends StatelessWidget {
             if (result != null && result.files.isNotEmpty) {
               final file = result.files.first;
 
-              controller.selectedDocument.value = File(file.path!);
+              controller.selectedDocumentFile.value =
+                  file; // salva o PlatformFile original
               controller.selectedDocumentName.value = file.name;
+
+              print("[DocumentStep] -> Documento selecionado: ${file.name}");
 
               print("[DocumentStep] -> Documento selecionado: ${file.name}");
             }

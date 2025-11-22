@@ -8,6 +8,7 @@ import 'package:polymdex/core/routes/app_routes.dart';
 import 'package:polymdex/core/services/navigation_service.dart';
 import 'package:polymdex/controllers/global_controller.dart';
 import 'package:polymdex/core/services/product_service.dart';
+import 'package:open_filex/open_filex.dart';
 
 class HomeController extends GetxController {
   final ProductService productService = Get.put(ProductService());
@@ -25,8 +26,8 @@ class HomeController extends GetxController {
   final RxList<ProductModel> filteredProducts = <ProductModel>[].obs;
   final RxList<String> allGrades = <String>[].obs;
   final selectedDocument = Rxn<File>();
-  final selectedDocumentName = RxnString();
-  PlatformFile? selectedDocumentFile;
+  final selectedDocumentFile = Rx<PlatformFile?>(null);
+  final selectedDocumentName = Rx<String?>(null);
 
   @override
   void onInit() {
@@ -45,8 +46,23 @@ class HomeController extends GetxController {
     densityController.text = density.value.toStringAsFixed(3);
   }
 
+  void _disposeFormData() {
+    gradeController.clear();
+    miController.clear();
+    densityController.clear();
+
+    mi.value = 0.05;
+    density.value = 0.800;
+    comonomerContent.value = 0.0;
+
+    currentStep.value = 0;
+    filteredProducts.clear();
+    productService.selections.clear();
+    productService.grade.value = '';
+  }
+
   void setDocumentFile(PlatformFile file) {
-    selectedDocumentFile = file;
+    selectedDocumentFile.value = file;
   }
 
   Future<void> loadGrades() async {
@@ -54,9 +70,51 @@ class HomeController extends GetxController {
     allGrades.assignAll(grades);
   }
 
+  Future<void> openProductDocument(int productId) async {
+    try {
+      final doc = await productService.getProductDocument(productId);
+
+      if (doc == null) {
+        Get.snackbar(
+          'Documento',
+          'Nenhum documento encontrado para este produto.',
+        );
+        return;
+      }
+
+      final path = doc['path']!;
+      final file = File(path);
+
+      // Verifica se o arquivo existe fisicamente
+      if (!await file.exists()) {
+        print("[HomeController] ❌ Arquivo não existe em: $path");
+
+        Get.snackbar('Erro', 'O documento não foi encontrado no dispositivo.');
+        return;
+      }
+
+      print("[HomeController] 📄 Abrindo arquivo: $path");
+
+      final result = await OpenFilex.open(path);
+      print("[HomeController] → Resultado: ${result.type}");
+
+      if (result.type != ResultType.done) {
+        Get.snackbar("Erro", "Não foi possível abrir o documento.");
+      }
+    } catch (e) {
+      print("[HomeController] ❌ Erro ao abrir documento: $e");
+      Get.snackbar("Erro", "Falha ao abrir o documento: $e");
+    }
+  }
+
   Future<void> loadFilteredProducts() async {
     isLoading.value = true;
     try {
+      productService.selections.clear();
+      filteredProducts.clear();
+      productService.selectedProducer.value = '';
+      productService.selectedPolymer.value = '';
+
       final results = await productService.getFilteredProducts();
       filteredProducts.assignAll(results);
     } catch (e) {
@@ -134,6 +192,11 @@ class HomeController extends GetxController {
 
   /// Chama a filtragem geral (com filtros compostos)
   Future<void> filterProducts() async {
+    productService.selections.clear();
+    filteredProducts.clear();
+    productService.selectedProducer.value = '';
+    productService.selectedPolymer.value = '';
+
     isLoading.value = true;
     final results = await productService.getFilteredProducts();
     filteredProducts.assignAll(results);
@@ -149,6 +212,9 @@ class HomeController extends GetxController {
     isLoading.value = true;
     try {
       productService.selections.clear();
+      filteredProducts.clear();
+      productService.selectedProducer.value = '';
+      productService.selectedPolymer.value = '';
       productService.addSelection('Polymer', polymer);
 
       final results = await productService.getFilteredProducts();
@@ -173,8 +239,10 @@ class HomeController extends GetxController {
   Future<void> saveProductToIsar() async {
     isLoading.value = true;
     try {
-      await productService.saveProduct();
-
+      await productService.saveProduct(
+        documentFile: selectedDocumentFile.value, // <-- adiciona isso
+        documentName: selectedDocumentName.value, // <-- adiciona isso
+      );
       // depois de salvar, limpa os campos e resetas os valores
       _disposeFormData();
 
@@ -186,22 +254,6 @@ class HomeController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-  }
-
-  // método privado que reseta os dados do formulário
-  void _disposeFormData() {
-    gradeController.clear();
-    miController.clear();
-    densityController.clear();
-
-    mi.value = 0.05;
-    density.value = 0.800;
-    comonomerContent.value = 0.0;
-
-    currentStep.value = 0;
-    filteredProducts.clear();
-    productService.selections.clear();
-    productService.grade.value = '';
   }
 
   Future<void> _loadUserNameSafe() async {

@@ -42,25 +42,40 @@ const ProductModelSchema = CollectionSchema(
       name: r'density',
       type: IsarType.double,
     ),
-    r'grade': PropertySchema(
+    r'documentName': PropertySchema(
       id: 5,
+      name: r'documentName',
+      type: IsarType.string,
+    ),
+    r'documentPath': PropertySchema(
+      id: 6,
+      name: r'documentPath',
+      type: IsarType.string,
+    ),
+    r'grade': PropertySchema(
+      id: 7,
       name: r'grade',
       type: IsarType.string,
     ),
     r'mi': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'mi',
       type: IsarType.double,
     ),
     r'mwd': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'mwd',
       type: IsarType.string,
     ),
     r'processingAid': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'processingAid',
       type: IsarType.bool,
+    ),
+    r'userId': PropertySchema(
+      id: 11,
+      name: r'userId',
+      type: IsarType.long,
     )
   },
   estimateSize: _productModelEstimateSize,
@@ -114,6 +129,18 @@ int _productModelEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.documentName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.documentPath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.grade.length * 3;
   {
     final value = object.mwd;
@@ -135,10 +162,13 @@ void _productModelSerialize(
   writer.writeString(offsets[2], object.comonomer);
   writer.writeDouble(offsets[3], object.comonomerContent);
   writer.writeDouble(offsets[4], object.density);
-  writer.writeString(offsets[5], object.grade);
-  writer.writeDouble(offsets[6], object.mi);
-  writer.writeString(offsets[7], object.mwd);
-  writer.writeBool(offsets[8], object.processingAid);
+  writer.writeString(offsets[5], object.documentName);
+  writer.writeString(offsets[6], object.documentPath);
+  writer.writeString(offsets[7], object.grade);
+  writer.writeDouble(offsets[8], object.mi);
+  writer.writeString(offsets[9], object.mwd);
+  writer.writeBool(offsets[10], object.processingAid);
+  writer.writeLong(offsets[11], object.userId);
 }
 
 ProductModel _productModelDeserialize(
@@ -153,11 +183,14 @@ ProductModel _productModelDeserialize(
   object.comonomer = reader.readStringOrNull(offsets[2]);
   object.comonomerContent = reader.readDoubleOrNull(offsets[3]);
   object.density = reader.readDouble(offsets[4]);
-  object.grade = reader.readString(offsets[5]);
+  object.documentName = reader.readStringOrNull(offsets[5]);
+  object.documentPath = reader.readStringOrNull(offsets[6]);
+  object.grade = reader.readString(offsets[7]);
   object.id = id;
-  object.mi = reader.readDouble(offsets[6]);
-  object.mwd = reader.readStringOrNull(offsets[7]);
-  object.processingAid = reader.readBoolOrNull(offsets[8]);
+  object.mi = reader.readDouble(offsets[8]);
+  object.mwd = reader.readStringOrNull(offsets[9]);
+  object.processingAid = reader.readBoolOrNull(offsets[10]);
+  object.userId = reader.readLong(offsets[11]);
   return object;
 }
 
@@ -179,13 +212,19 @@ P _productModelDeserializeProp<P>(
     case 4:
       return (reader.readDouble(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
-    case 6:
-      return (reader.readDouble(offset)) as P;
-    case 7:
       return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readDouble(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
       return (reader.readBoolOrNull(offset)) as P;
+    case 11:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -864,6 +903,314 @@ extension ProductModelQueryFilter
     });
   }
 
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'documentName',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'documentName',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'documentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'documentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'documentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'documentName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'documentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'documentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'documentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'documentName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'documentName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'documentName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'documentPath',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'documentPath',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'documentPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'documentPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'documentPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'documentPath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'documentPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'documentPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'documentPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'documentPath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'documentPath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      documentPathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'documentPath',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition> gradeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1289,6 +1636,61 @@ extension ProductModelQueryFilter
       ));
     });
   }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition> userIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      userIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition>
+      userIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterFilterCondition> userIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension ProductModelQueryObject
@@ -1377,6 +1779,32 @@ extension ProductModelQuerySortBy
     });
   }
 
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> sortByDocumentName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy>
+      sortByDocumentNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> sortByDocumentPath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentPath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy>
+      sortByDocumentPathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentPath', Sort.desc);
+    });
+  }
+
   QueryBuilder<ProductModel, ProductModel, QAfterSortBy> sortByGrade() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'grade', Sort.asc);
@@ -1423,6 +1851,18 @@ extension ProductModelQuerySortBy
       sortByProcessingAidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'processingAid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
     });
   }
 }
@@ -1476,6 +1916,32 @@ extension ProductModelQuerySortThenBy
   QueryBuilder<ProductModel, ProductModel, QAfterSortBy> thenByDensityDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'density', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> thenByDocumentName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy>
+      thenByDocumentNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> thenByDocumentPath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentPath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy>
+      thenByDocumentPathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'documentPath', Sort.desc);
     });
   }
 
@@ -1539,6 +2005,18 @@ extension ProductModelQuerySortThenBy
       return query.addSortBy(r'processingAid', Sort.desc);
     });
   }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
 }
 
 extension ProductModelQueryWhereDistinct
@@ -1575,6 +2053,20 @@ extension ProductModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ProductModel, ProductModel, QDistinct> distinctByDocumentName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'documentName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QDistinct> distinctByDocumentPath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'documentPath', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ProductModel, ProductModel, QDistinct> distinctByGrade(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1599,6 +2091,12 @@ extension ProductModelQueryWhereDistinct
       distinctByProcessingAid() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'processingAid');
+    });
+  }
+
+  QueryBuilder<ProductModel, ProductModel, QDistinct> distinctByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userId');
     });
   }
 }
@@ -1643,6 +2141,18 @@ extension ProductModelQueryProperty
     });
   }
 
+  QueryBuilder<ProductModel, String?, QQueryOperations> documentNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'documentName');
+    });
+  }
+
+  QueryBuilder<ProductModel, String?, QQueryOperations> documentPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'documentPath');
+    });
+  }
+
   QueryBuilder<ProductModel, String, QQueryOperations> gradeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'grade');
@@ -1664,6 +2174,12 @@ extension ProductModelQueryProperty
   QueryBuilder<ProductModel, bool?, QQueryOperations> processingAidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'processingAid');
+    });
+  }
+
+  QueryBuilder<ProductModel, int, QQueryOperations> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userId');
     });
   }
 }

@@ -79,9 +79,18 @@ class PolymerStep extends GetView<HomeController> {
                     controller.productService.selectedProducer.value == prod;
                 return GestureDetector(
                   onTap: () {
-                    controller.productService.selectProducer(prod);
-                    print('[CreateProductView] -> Produtor selecionado: $prod');
+                    if (controller.productService.selectedProducer.value ==
+                        prod) {
+                      controller.productService.selectedProducer.value = '';
+                    } else {
+                      controller.productService.selectProducer(prod);
+                    }
+
+                    print(
+                      '[CreateProductView] -> Produtor selecionado: ${controller.productService.selectedProducer.value}',
+                    );
                   },
+
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,

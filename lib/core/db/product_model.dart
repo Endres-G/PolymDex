@@ -11,6 +11,7 @@ class ProductModel {
   final polymer = IsarLink<PolymerModel>();
   final producer = IsarLink<ProducerModel>();
 
+  late int userId;
   late String grade; // Ex: Grade-PP
   late double mi; // Índice de fluidez
   late double density; // Densidade
