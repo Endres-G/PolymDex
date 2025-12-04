@@ -114,54 +114,136 @@ class ProductService extends GetxService {
   // ---------------------------
   // Consulta filtrada no Isar
   // ---------------------------
+
   Future<List<ProductModel>> getFilteredProducts() async {
     final isar = await isarService.db;
-    print(
-      '[ProductService] 🔍 Iniciando busca com filtros: ${selections.join(" | ")}',
-    );
 
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    print('[ProductService] 🔍 Filtros recebidos: ${selections.join(" | ")}');
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // --- Carregar valores dos filtros ---
     final mi = parseDouble('MI');
     final density = parseDouble('Density');
-    final polymer = parseString('Polymer');
-    final producer = parseString('Producer');
+    final polymerName = parseString('Polymer');
+    final producerName = parseString('Producer');
     final grade = parseString('Grade');
     final comonomer = parseString('Comonomer');
 
-    // --- CORREÇÃO AQUI ---
-
-    // 1. Comece com .filter()
     final session = globalController.userSession.value!;
+    print('[ProductService] 👤 Sessão atual -> userId=${session.id}\n');
+
+    // ------------------------------
+    // DEBUG -> Produtos no banco
+    // ------------------------------
+    final all = await isar.productModels.where().findAll();
+    print('[ProductService] 📦 Produtos no banco (${all.length}):');
+    for (var p in all) {
+      print(
+        '  - id=${p.id} | grade=${p.grade} | userId=${p.userId} | '
+        'polymer=${p.polymer.value?.name} | producer=${p.producer.value?.name}',
+      );
+    }
+    print('------------------------------------------------------\n');
+
+    // ------------------------------
+    // Construção do filtro base
+    // ------------------------------
     var query = isar.productModels.filter().userIdEqualTo(session.id);
+    print('[ProductService] 🎯 Filtro inicial -> userId=${session.id}');
 
-    // 2. Use .optional() para encadear os filtros
-    final results = await query
-        .optional(mi != null, (q) => q.miEqualTo(mi!))
-        .optional(density != null, (q) => q.densityEqualTo(density!))
-        .optional(
-          polymer != null && polymer.isNotEmpty,
-          (q) => q.polymer((p) => p.nameEqualTo(polymer!)),
-        )
-        .optional(
-          producer != null && producer.isNotEmpty,
-          (q) => q.producer((p) => p.nameEqualTo(producer!)),
-        )
-        .optional(
-          grade != null && grade.isNotEmpty,
-          (q) => q.gradeEqualTo(grade!),
-        )
-        .optional(
-          comonomer != null && comonomer.isNotEmpty,
-          (q) => q.comonomerEqualTo(comonomer!),
-        )
-        .findAll(); // 3. Chame .findAll() no final
+    if (mi != null) {
+      print('[Filtro] MI = $mi');
+      query = query.miEqualTo(mi);
+    }
 
-    // --- FIM DA CORREÇÃO ---
+    if (density != null) {
+      print('[Filtro] Density = $density');
+      query = query.densityEqualTo(density);
+    }
 
-    print('[ProductService] ✅ ${results.length} produtos encontrados.');
+    // ------------------------------
+    // Filtro de Polymer (por ID)
+    // ------------------------------
+    if (polymerName != null && polymerName.isNotEmpty) {
+      print('[Filtro] Polymer = $polymerName');
+
+      final targetPoly = await isar.polymerModels
+          .filter()
+          .nameContains(polymerName)
+          .findFirst();
+
+      if (targetPoly != null) {
+        print(
+          '[Filtro] Polymer encontrado -> id=${targetPoly.id}, name=${targetPoly.name}',
+        );
+        query = query.polymer((p) => p.idEqualTo(targetPoly.id));
+      } else {
+        print(
+          '[Filtro] ❌ Polymer "$polymerName" não encontrado -> filtro ignorado',
+        );
+      }
+    }
+
+    // ------------------------------
+    // Producer (por nome)
+    // ------------------------------
+    if (producerName != null && producerName.isNotEmpty) {
+      print('[Filtro] Producer = $producerName');
+      query = query.producer((p) => p.nameEqualTo(producerName));
+    }
+
+    if (grade != null && grade.isNotEmpty) {
+      print('[Filtro] Grade = $grade');
+      query = query.gradeEqualTo(grade);
+    }
+
+    if (comonomer != null && comonomer.isNotEmpty) {
+      print('[Filtro] Comonomer = $comonomer');
+      query = query.comonomerEqualTo(comonomer);
+    }
+
+    print('------------------------------------------------------');
+
+    // ------------------------------
+    // Executa a query final
+    // ------------------------------
+    final results = await query.findAll();
+    print(
+      '[ProductService] ✅ ${results.length} produtos encontrados para userId=${session.id}\n',
+    );
+
+    Get.find<HomeController>().filteredProducts.assignAll(results);
+
+    // ------------------------------
+    // PRINT detalhado de cada produto
+    // ------------------------------
+    for (var p in results) {
+      print('📦 Produto encontrado:');
+      print('   • productId: ${p.id}');
+      print('   • grade: ${p.grade}');
+      print('   • pertence ao userId: ${p.userId}');
+      print(
+        '   • polymer: ${p.polymer.value?.name} (id=${p.polymer.value?.id})',
+      );
+      print(
+        '   • producer: ${p.producer.value?.name} (id=${p.producer.value?.id})',
+      );
+      print('   • MI: ${p.mi}');
+      print('   • Density: ${p.density}');
+      print('   • Comonomer: ${p.comonomer}');
+      print('   • Additives: ${p.additives}');
+      print('------------------------------------------------------');
+    }
+
+    // ------------------------------
+    // Navegação
+    // ------------------------------
     NavigationService.pageToNamed(
       AppRoutes.search,
       arguments: {'showSearchBar': false},
     );
+
     return results;
   }
 
@@ -271,7 +353,7 @@ class ProductService extends GetxService {
       // busca se já existe polymer
       final existingPolymer = await isar.polymerModels
           .filter()
-          .nameEqualTo(polymerName)
+          .nameContains(polymerName)
           .findFirst();
 
       final polymer = existingPolymer ?? PolymerModel()
@@ -280,7 +362,7 @@ class ProductService extends GetxService {
       // busca se já existe producer
       final existingProducer = await isar.producerModels
           .filter()
-          .nameEqualTo(producerName)
+          .nameContains(producerName)
           .findFirst();
 
       final producer = existingProducer ?? ProducerModel()
@@ -292,8 +374,8 @@ class ProductService extends GetxService {
       final product = ProductModel()
         ..userId = session.id
         ..grade = grade.value.isNotEmpty ? grade.value : 'Grade-$polymerName'
-        ..mi = parseDouble('MI') ?? 0.0
-        ..density = parseDouble('Density') ?? 0.0
+        ..mi = parseDouble('MI') ?? 0.05
+        ..density = parseDouble('Density') ?? 0.800
         ..processingAid = parseBool('ProcessingAid')
         ..antiblock = parseBool('Antiblock')
         ..mwd = parseString('MWD')
@@ -357,6 +439,21 @@ class ProductService extends GetxService {
       Get.snackbar('Erro', 'Falha ao salvar produto: $e');
       return false;
     }
+  }
+
+  Future<List<ProductModel>> getAllProducts() async {
+    final isar = await isarService.db;
+
+    final products = await isar.productModels.where().findAll();
+
+    print("📦 [ProductService] Listando TODOS os produtos no banco:");
+    for (var p in products) {
+      print(
+        " - id=${p.id} | grade=${p.grade} | userId=${p.userId} | polymer=${p.polymer} | producer=${p.producer}",
+      );
+    }
+
+    return products;
   }
 
   // ---------------------------

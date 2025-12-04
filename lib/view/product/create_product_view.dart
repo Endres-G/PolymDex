@@ -71,6 +71,7 @@ class CreateProductView extends GetView<HomeController> {
                 const SizedBox(height: 12),
 
                 Expanded(child: steps[currentStep]),
+                const SizedBox(height: 12),
 
                 SizedBox(
                   height: 46,

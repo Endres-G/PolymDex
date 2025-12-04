@@ -14,11 +14,10 @@ class AdditivesStep extends StatefulWidget {
 class _AdditivesStepState extends State<AdditivesStep> {
   final HomeController controller = Get.find<HomeController>();
   final productService = Get.find<HomeController>().productService;
-
-  bool antioxidant = false;
-  bool antiblock = false;
-  bool slip = false;
-  bool processingAid = false;
+  bool? antioxidant;
+  bool? antiblock;
+  bool? slip;
+  bool? processingAid;
 
   final Map<String, bool> otherAdds = {
     'UV Stabilizer': false,
@@ -86,7 +85,9 @@ class _AdditivesStepState extends State<AdditivesStep> {
     }
   }
 
-  Widget _buildYesNoRow(String label, bool value, Function(bool) onChanged) {
+  Widget _buildYesNoRow(String label, bool? value, Function(bool) onChanged) {
+    final isYes = value == true;
+    final isNo = value == false;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -97,7 +98,7 @@ class _AdditivesStepState extends State<AdditivesStep> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: value
+                  backgroundColor: isYes
                       ? DesignSystemColors.lightgrey
                       : DesignSystemColors.grey,
                 ),
@@ -105,7 +106,7 @@ class _AdditivesStepState extends State<AdditivesStep> {
                 child: Text(
                   'Sim',
                   style: TypographySystem.wbuttonText.copyWith(
-                    color: value ? Colors.black : Colors.white,
+                    color: isYes ? Colors.black : Colors.white,
                   ),
                 ),
               ),
@@ -114,7 +115,7 @@ class _AdditivesStepState extends State<AdditivesStep> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: !value
+                  backgroundColor: isNo
                       ? DesignSystemColors.lightgrey
                       : DesignSystemColors.grey,
                 ),
@@ -122,7 +123,7 @@ class _AdditivesStepState extends State<AdditivesStep> {
                 child: Text(
                   'Não',
                   style: TypographySystem.wbuttonText.copyWith(
-                    color: !value ? Colors.black : Colors.white,
+                    color: isNo ? Colors.black : Colors.white,
                   ),
                 ),
               ),

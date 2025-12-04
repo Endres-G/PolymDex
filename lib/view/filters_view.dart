@@ -36,8 +36,9 @@ class FiltersView extends GetView<HomeController> {
               onPressed: controller.isLoading.value
                   ? null
                   : () async {
-                      await controller.loadFilteredProducts();
+                      await controller.filterProducts();
                     },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: DesignSystemColors.lightgrey,
                 shape: const StadiumBorder(),
@@ -103,7 +104,7 @@ class FiltersView extends GetView<HomeController> {
                       if (currentStep < steps.length - 1) {
                         controller.currentStep.value++;
                       } else {
-                        await controller.loadFilteredProducts();
+                        await controller.filterProducts();
                       }
                     },
                     style: ElevatedButton.styleFrom(

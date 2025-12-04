@@ -30,9 +30,9 @@ class HomeController extends GetxController {
   final selectedDocumentName = Rx<String?>(null);
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-
+    await productService.getAllProducts();
     // carrega inicial
     _loadUserNameSafe();
 
@@ -190,17 +190,45 @@ class HomeController extends GetxController {
     return await productService.getAllGrades();
   }
 
-  /// Chama a filtragem geral (com filtros compostos)
+  String normalize(String? value) {
+    if (value == null) return '';
+    return value.trim(); // SEM .toUpperCase()
+  }
+
   Future<void> filterProducts() async {
+    print("[HomeController] 🔎 filterProducts chamado!");
+
+    // 🔥 Sempre começa limpando
     productService.selections.clear();
     filteredProducts.clear();
-    productService.selectedProducer.value = '';
-    productService.selectedPolymer.value = '';
+
+    // 🔥 Normaliza valores
+    productService.selectedPolymer.value = normalize(
+      productService.selectedPolymer.value,
+    );
+
+    productService.selectedProducer.value = normalize(
+      productService.selectedProducer.value,
+    );
+
+    productService.grade.value = normalize(productService.grade.value);
+
+    // 🔥 Atualiza selections corretamente
+    _updateSelections();
+
+    print("[HomeController] Selections enviadas para o service:");
+    print(productService.selections);
 
     isLoading.value = true;
-    final results = await productService.getFilteredProducts();
-    filteredProducts.assignAll(results);
-    isLoading.value = false;
+
+    try {
+      final results = await productService.getFilteredProducts();
+      filteredProducts.assignAll(results);
+    } catch (e) {
+      print("[HomeController] ❌ Erro no filterProducts: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   /// Salva novo produto
@@ -209,28 +237,63 @@ class HomeController extends GetxController {
   }
 
   Future<void> searchByPolymer(String polymer) async {
+    print("------------------------------------------------");
+    print("[HomeController] 🔍 searchByPolymer chamado");
+    print("[HomeController] Polymer recebido = '$polymer'");
+
+    print("------------------------------------------------");
+
+    final normalized = polymer.trim().toUpperCase();
+
     isLoading.value = true;
     try {
+      // 🔥 LIMPA TUDO CORRETAMENTE ANTES
+      print("[HomeController] Limpando filtros antes...");
       productService.selections.clear();
       filteredProducts.clear();
+
       productService.selectedProducer.value = '';
-      productService.selectedPolymer.value = '';
-      productService.addSelection('Polymer', polymer);
-
-      final results = await productService.getFilteredProducts();
-
-      // salva direto no controller
-      filteredProducts.assignAll(results);
-
-      // navega para a tela
-      NavigationService.pageToNamed(AppRoutes.search);
+      productService.selectedPolymer.value = normalized;
 
       print(
-        '[HomeController] 🧮 ${filteredProducts.length} produtos carregados',
+        "[HomeController] selectedPolymer DEFINIDO como ${productService.selectedPolymer.value}",
+      );
+
+      // 🔥 GARANTE FILTRO EXATO por polimero
+      productService.addSelection('Polymer', normalized);
+
+      print("[HomeController] selections ENVIADO para o service:");
+      print(productService.selections);
+
+      // 🔥 CHAMA O SERVICE
+      final results = await productService.getFilteredProducts();
+
+      // 🔥 FILTRA DE NOVO AQUI NA TELA (SEGURANÇA EXTRA)
+      final strictResults = results.where((p) {
+        final polyName = p.polymer.value?.name.trim().toUpperCase();
+        return polyName == normalized; // <--- IGUALDADE EXATA
+      }).toList();
+
+      print(
+        "[HomeController] 🔎 Produtos recebidos DO SERVICE = ${results.length}",
+      );
+      print(
+        "[HomeController] 🔎 Produtos após filtro ESTRITO = ${strictResults.length}",
+      );
+
+      for (var p in strictResults) {
+        print(
+          " -> productId=${p.id}, grade=${p.grade}, polymerId=${p.polymer.value?.id}, polymerName=${p.polymer.value?.name}",
+        );
+      }
+
+      filteredProducts.assignAll(strictResults);
+
+      print(
+        "[HomeController] 🧮 Controller carregou ${filteredProducts.length} produtos",
       );
     } catch (e) {
       print('[HomeController] ❌ Erro ao buscar produtos de $polymer: $e');
-      Get.snackbar('Erro', 'Falha ao buscar produtos de $polymer');
     } finally {
       isLoading.value = false;
     }
@@ -260,6 +323,50 @@ class HomeController extends GetxController {
     final session = globalController.userSession.value;
     if (session == null) return;
     userName.value = session.nome;
+  }
+
+  /// Sincroniza filtros do controller para o ProductService.selections
+  void _updateSelections() {
+    productService.selections.clear();
+
+    // Polymer
+    if (productService.selectedPolymer.value.isNotEmpty) {
+      productService.addSelection(
+        'Polymer',
+        productService.selectedPolymer.value,
+      );
+    }
+
+    // Producer
+    if (productService.selectedProducer.value.isNotEmpty) {
+      productService.addSelection(
+        'Producer',
+        productService.selectedProducer.value,
+      );
+    }
+
+    // Grade
+    if (productService.grade.value.isNotEmpty) {
+      productService.addSelection('Grade', productService.grade.value);
+    }
+
+    // MI
+    productService.addSelection('MI', mi.value.toStringAsFixed(2));
+
+    // Density
+    productService.addSelection('Density', density.value.toStringAsFixed(3));
+
+    // Comonomer
+    if (comonomerContent.value > 0) {
+      productService.addSelection(
+        'Comonomer',
+        comonomerContent.value.toString(),
+      );
+    }
+
+    print(
+      '[HomeController] 🔍 Selections atualizadas: ${productService.selections}',
+    );
   }
 
   void sair() {
