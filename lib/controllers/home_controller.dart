@@ -47,18 +47,42 @@ class HomeController extends GetxController {
   }
 
   void _disposeFormData() {
+    // 🔹 Text fields
     gradeController.clear();
     miController.clear();
     densityController.clear();
 
+    // 🔹 Valores numéricos padrão
     mi.value = 0.05;
     density.value = 0.800;
     comonomerContent.value = 0.0;
 
+    // 🔹 Steps
     currentStep.value = 0;
+
+    // 🔹 Resultados
     filteredProducts.clear();
+
+    // 🔹 Documento
+    selectedDocument.value = null;
+    selectedDocumentFile.value = null;
+    selectedDocumentName.value = null;
+
+    // 🔹 ProductService (estado global)
     productService.selections.clear();
     productService.grade.value = '';
+    productService.selectedProducer.value = '';
+    productService.selectedPolymer.value = '';
+
+    print('[HomeController] 🔄 Formulário resetado completamente');
+  }
+
+  @override
+  void onClose() {
+    gradeController.dispose();
+    miController.dispose();
+    densityController.dispose();
+    super.onClose();
   }
 
   void setDocumentFile(PlatformFile file) {
