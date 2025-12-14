@@ -324,16 +324,24 @@ class HomeController extends GetxController {
   }
 
   Future<void> saveProductToIsar() async {
+    // ✅ VALIDAÇÃO ÚNICA (GRADE OBRIGATÓRIO)
+    if (productService.grade.value.trim().isEmpty) {
+      Get.snackbar(
+        'Campo obrigatório',
+        'Informe ao menos um grade/nome para o produto.',
+      );
+      return;
+    }
+
     isLoading.value = true;
     try {
       await productService.saveProduct(
-        documentFile: selectedDocumentFile.value, // <-- adiciona isso
-        documentName: selectedDocumentName.value, // <-- adiciona isso
+        documentFile: selectedDocumentFile.value,
+        documentName: selectedDocumentName.value,
       );
-      // depois de salvar, limpa os campos e resetas os valores
+
       _disposeFormData();
 
-      // navega de volta pra home
       NavigationService.pageOffAndToNamed(AppRoutes.home);
     } catch (e) {
       print('[HomeController] ❌ Erro ao salvar produto: $e');
