@@ -13,6 +13,9 @@ import 'package:open_filex/open_filex.dart';
 class HomeController extends GetxController {
   final ProductService productService = Get.put(ProductService());
   final GlobalController globalController = Get.find<GlobalController>();
+  final Rx<RangeValues> miRange = const RangeValues(0.05, 20.0).obs;
+
+  final Rx<RangeValues> densityRange = const RangeValues(0.800, 1.000).obs;
 
   final RxBool isLoading = false.obs;
   final RxString userName = 'Usuario'.obs;
@@ -28,6 +31,7 @@ class HomeController extends GetxController {
   final selectedDocument = Rxn<File>();
   final selectedDocumentFile = Rx<PlatformFile?>(null);
   final selectedDocumentName = Rx<String?>(null);
+  final RxBool isFilterMode = false.obs;
 
   @override
   void onInit() async {
@@ -75,6 +79,35 @@ class HomeController extends GetxController {
     productService.selectedPolymer.value = '';
 
     print('[HomeController] 🔄 Formulário resetado completamente');
+  }
+
+  void resetForm() {
+    gradeController.clear();
+    miController.clear();
+    densityController.clear();
+
+    mi.value = 0.05;
+    density.value = 0.800;
+    comonomerContent.value = 0.0;
+
+    currentStep.value = 0;
+
+    selectedDocument.value = null;
+    selectedDocumentFile.value = null;
+    selectedDocumentName.value = null;
+
+    print('[HomeController] 🔄 Form resetado');
+  }
+
+  void resetFilters() {
+    miRange.value = const RangeValues(0.05, 20.0);
+    densityRange.value = const RangeValues(0.800, 1.000);
+
+    productService.selections.clear();
+
+    isFilterMode.value = false;
+
+    print('[HomeController] 🧹 Filtros resetados');
   }
 
   @override
@@ -220,36 +253,33 @@ class HomeController extends GetxController {
   }
 
   Future<void> filterProducts() async {
-    print("[HomeController] 🔎 filterProducts chamado!");
-
-    // 🔥 Sempre começa limpando
-    productService.selections.clear();
-    filteredProducts.clear();
-
-    // 🔥 Normaliza valores
-    productService.selectedPolymer.value = normalize(
-      productService.selectedPolymer.value,
-    );
-
-    productService.selectedProducer.value = normalize(
-      productService.selectedProducer.value,
-    );
-
-    productService.grade.value = normalize(productService.grade.value);
-
-    // 🔥 Atualiza selections corretamente
-    _updateSelections();
-
-    print("[HomeController] Selections enviadas para o service:");
-    print(productService.selections);
+    print("[HomeController] 🔎 filterProducts chamado");
 
     isLoading.value = true;
 
     try {
+      filteredProducts.clear();
+
+      // 🔹 Normalização de strings
+      productService.selectedPolymer.value = normalize(
+        productService.selectedPolymer.value,
+      );
+      productService.selectedProducer.value = normalize(
+        productService.selectedProducer.value,
+      );
+      productService.grade.value = normalize(productService.grade.value);
+
+      // 🔹 Atualiza selections com ranges reais sempre que necessário
+      _updateSelections(forceRange: true);
+
+      print('[HomeController] Selections finais:');
+      print(productService.selections);
+
       final results = await productService.getFilteredProducts();
       filteredProducts.assignAll(results);
     } catch (e) {
       print("[HomeController] ❌ Erro no filterProducts: $e");
+      Get.snackbar('Erro', 'Falha ao filtrar produtos');
     } finally {
       isLoading.value = false;
     }
@@ -358,7 +388,7 @@ class HomeController extends GetxController {
   }
 
   /// Sincroniza filtros do controller para o ProductService.selections
-  void _updateSelections() {
+  void _updateSelections({bool forceRange = false}) {
     productService.selections.clear();
 
     // Polymer
@@ -377,16 +407,25 @@ class HomeController extends GetxController {
       );
     }
 
-    // Grade
-    if (productService.grade.value.isNotEmpty) {
-      productService.addSelection('Grade', productService.grade.value);
+    // MI
+    if (forceRange || isFilterMode.value) {
+      productService.addSelection(
+        'MI_RANGE',
+        '${miRange.value.start};${miRange.value.end}',
+      );
+    } else {
+      productService.addSelection('MI', mi.value.toStringAsFixed(2));
     }
 
-    // MI
-    productService.addSelection('MI', mi.value.toStringAsFixed(2));
-
     // Density
-    productService.addSelection('Density', density.value.toStringAsFixed(3));
+    if (forceRange || isFilterMode.value) {
+      productService.addSelection(
+        'DENSITY_RANGE',
+        '${densityRange.value.start};${densityRange.value.end}',
+      );
+    } else {
+      productService.addSelection('Density', density.value.toStringAsFixed(3));
+    }
 
     // Comonomer
     if (comonomerContent.value > 0) {

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -48,6 +49,20 @@ class ProductService extends GetxService {
     'Daelim',
     'Orpic',
   ];
+  RangeValues? parseRange(String key) {
+    final entry = selections.firstWhereOrNull((s) => s.startsWith('$key:'));
+    if (entry == null) return null;
+
+    final parts = entry.split(':').last.split(';');
+    if (parts.length != 2) return null;
+
+    final min = double.tryParse(parts[0]);
+    final max = double.tryParse(parts[1]);
+
+    if (min == null || max == null) return null;
+
+    return RangeValues(min, max);
+  }
 
   // ---------------------------
   // Métodos de seleção
@@ -111,10 +126,6 @@ class ProductService extends GetxService {
     print('[ProductService] -> Selections: ${selections.join(' | ')}');
   }
 
-  // ---------------------------
-  // Consulta filtrada no Isar
-  // ---------------------------
-
   Future<List<ProductModel>> getFilteredProducts() async {
     final isar = await isarService.db;
 
@@ -122,49 +133,58 @@ class ProductService extends GetxService {
     print('[ProductService] 🔍 Filtros recebidos: ${selections.join(" | ")}');
     print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    // --- Carregar valores dos filtros ---
-    final mi = parseDouble('MI');
-    final density = parseDouble('Density');
+    // ------------------------------
+    // Carregar filtros
+    // ------------------------------
+    final miRange = parseRange('MI_RANGE');
+    final densityRange = parseRange('DENSITY_RANGE');
+    final miExact = parseDouble('MI');
+    final densityExact = parseDouble('Density');
     final polymerName = parseString('Polymer');
     final producerName = parseString('Producer');
-    final grade = parseString('Grade');
     final comonomer = parseString('Comonomer');
 
-    final session = globalController.userSession.value!;
+    final session = globalController.userSession.value;
+    if (session == null) {
+      print('[ProductService] ❌ Nenhum usuário logado.');
+      return [];
+    }
+
     print('[ProductService] 👤 Sessão atual -> userId=${session.id}\n');
 
     // ------------------------------
-    // DEBUG -> Produtos no banco
-    // ------------------------------
-    final all = await isar.productModels.where().findAll();
-    print('[ProductService] 📦 Produtos no banco (${all.length}):');
-    for (var p in all) {
-      print(
-        '  - id=${p.id} | grade=${p.grade} | userId=${p.userId} | '
-        'polymer=${p.polymer.value?.name} | producer=${p.producer.value?.name}',
-      );
-    }
-    print('------------------------------------------------------\n');
-
-    // ------------------------------
-    // Construção do filtro base
+    // Base da query
     // ------------------------------
     var query = isar.productModels.filter().userIdEqualTo(session.id);
     print('[ProductService] 🎯 Filtro inicial -> userId=${session.id}');
 
-    if (mi != null) {
-      print('[Filtro] MI = $mi');
-      query = query.miEqualTo(mi);
+    // ==============================
+    // 🔥 MI (RANGE ou FIXO)
+    // ==============================
+    if (miRange != null) {
+      print('[Filtro] MI_RANGE = ${miRange.start} → ${miRange.end}');
+      query = query.miBetween(miRange.start, miRange.end);
+    } else if (miExact != null) {
+      print('[Filtro] MI exato = $miExact');
+      query = query.miEqualTo(miExact);
     }
 
-    if (density != null) {
-      print('[Filtro] Density = $density');
-      query = query.densityEqualTo(density);
+    // ==============================
+    // 🔥 Density (RANGE ou FIXO)
+    // ==============================
+    if (densityRange != null) {
+      print(
+        '[Filtro] DENSITY_RANGE = ${densityRange.start} → ${densityRange.end}',
+      );
+      query = query.densityBetween(densityRange.start, densityRange.end);
+    } else if (densityExact != null) {
+      print('[Filtro] Density exato = $densityExact');
+      query = query.densityEqualTo(densityExact);
     }
 
-    // ------------------------------
-    // Filtro de Polymer (por ID)
-    // ------------------------------
+    // ==============================
+    // 🔥 Polymer (por nome)
+    // ==============================
     if (polymerName != null && polymerName.isNotEmpty) {
       print('[Filtro] Polymer = $polymerName');
 
@@ -180,24 +200,23 @@ class ProductService extends GetxService {
         query = query.polymer((p) => p.idEqualTo(targetPoly.id));
       } else {
         print(
-          '[Filtro] ❌ Polymer "$polymerName" não encontrado -> filtro ignorado',
+          '[Filtro] ❌ Polymer "$polymerName" não encontrado -> retornando lista vazia',
         );
+        return [];
       }
     }
 
-    // ------------------------------
-    // Producer (por nome)
-    // ------------------------------
+    // ==============================
+    // 🔥 Producer
+    // ==============================
     if (producerName != null && producerName.isNotEmpty) {
       print('[Filtro] Producer = $producerName');
       query = query.producer((p) => p.nameEqualTo(producerName));
     }
 
-    if (grade != null && grade.isNotEmpty) {
-      print('[Filtro] Grade = $grade');
-      query = query.gradeEqualTo(grade);
-    }
-
+    // ==============================
+    // 🔥 Comonomer
+    // ==============================
     if (comonomer != null && comonomer.isNotEmpty) {
       print('[Filtro] Comonomer = $comonomer');
       query = query.comonomerEqualTo(comonomer);
@@ -206,38 +225,16 @@ class ProductService extends GetxService {
     print('------------------------------------------------------');
 
     // ------------------------------
-    // Executa a query final
+    // Executa a query
     // ------------------------------
     final results = await query.findAll();
+
     print(
       '[ProductService] ✅ ${results.length} produtos encontrados para userId=${session.id}\n',
     );
 
-    Get.find<HomeController>().filteredProducts.assignAll(results);
-
     // ------------------------------
-    // PRINT detalhado de cada produto
-    // ------------------------------
-    for (var p in results) {
-      print('📦 Produto encontrado:');
-      print('   • productId: ${p.id}');
-      print('   • grade: ${p.grade}');
-      print('   • pertence ao userId: ${p.userId}');
-      print(
-        '   • polymer: ${p.polymer.value?.name} (id=${p.polymer.value?.id})',
-      );
-      print(
-        '   • producer: ${p.producer.value?.name} (id=${p.producer.value?.id})',
-      );
-      print('   • MI: ${p.mi}');
-      print('   • Density: ${p.density}');
-      print('   • Comonomer: ${p.comonomer}');
-      print('   • Additives: ${p.additives}');
-      print('------------------------------------------------------');
-    }
-
-    // ------------------------------
-    // Navegação
+    // Navegação (opcional)
     // ------------------------------
     NavigationService.pageToNamed(
       AppRoutes.search,

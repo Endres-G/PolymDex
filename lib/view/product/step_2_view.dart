@@ -4,15 +4,12 @@ import 'package:polymdex/controllers/home_controller.dart';
 import 'package:polymdex/core/themes/typography_system.dart';
 
 /// ------------------------------------------------------------
-/// 🔹 Step 2 - Grade / MI / Density
+/// 🔹 Step 2 - MI / Density
 /// ------------------------------------------------------------
 class MiDensityStep extends GetView<HomeController> {
   final bool isFilter;
 
-  const MiDensityStep({
-    super.key,
-    this.isFilter = false, // padrão: modo normal
-  });
+  const MiDensityStep({super.key, this.isFilter = false});
 
   @override
   Widget build(BuildContext context) {
@@ -24,186 +21,42 @@ class MiDensityStep extends GetView<HomeController> {
         children: [
           const SizedBox(height: 24),
 
-          /// ------------------------------------------------------------
-          /// GRADE
-          /// ------------------------------------------------------------
-          Text(
-            'Grade',
-            style: TypographySystem.buttonText.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-
-          if (!isFilter)
-            /// Campo de texto normal
-            TextField(
-              controller: c.gradeController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Digite o grade...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.grey[900],
-                isDense: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-              ),
-              onChanged: (value) {
-                c.productService.grade.value = value;
-                c.productService.addSelection('Grade', value);
-              },
-            )
-          else
-            /// Botão para abrir diálogo de seleção de Grade
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[900],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () async {
-                // 🔹 Buscar grades reais do banco via ProductService
-                final grades = await c.productService.getAllGrades();
-
-                if (grades.isEmpty) {
-                  Get.snackbar(
-                    'Aviso',
-                    'Nenhum grade encontrado no banco.',
-                    backgroundColor: Colors.grey[850],
-                    colorText: Colors.white,
-                  );
-                  return;
-                }
-
-                Get.dialog(
-                  Dialog(
-                    backgroundColor: Colors.grey[850],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: StatefulBuilder(
-                      builder: (context, setState) {
-                        final Map<String, bool> selectedGrades = {
-                          for (var g in grades) g: false,
-                        };
-
-                        return Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Selecione um Grade',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              /// 🔹 Chips dinâmicos de grades reais
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: grades.map((name) {
-                                  final selected =
-                                      selectedGrades[name] ?? false;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      // Apenas um selecionado por vez
-                                      setState(() {
-                                        for (var key in selectedGrades.keys) {
-                                          selectedGrades[key] = false;
-                                        }
-                                        selectedGrades[name] = true;
-                                      });
-                                      // Atualiza controller e fecha
-                                      c.gradeController.text = name;
-                                      c.productService.addSelection(
-                                        'Grade',
-                                        name,
-                                      );
-                                      Get.back();
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: selected
-                                            ? Colors.white
-                                            : Colors.grey[900],
-                                        border: Border.all(
-                                          color: selected
-                                              ? Colors.white
-                                              : Colors.grey[700]!,
-                                        ),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        name,
-                                        style: TextStyle(
-                                          color: selected
-                                              ? Colors.black
-                                              : Colors.white70,
-                                          fontWeight: selected
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-
-                              const SizedBox(height: 24),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () => Get.back(),
-                                  child: const Text(
-                                    'Fechar',
-                                    style: TextStyle(color: Colors.white70),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-              child: const Text('Selecionar Grade'),
-            ),
-
-          const SizedBox(height: 32),
-
-          /// ------------------------------------------------------------
-          /// ÍNDICE DE FLUIDEZ (MI)
-          /// ------------------------------------------------------------
+          /// ============================================================
+          /// MI
+          /// ============================================================
           Text(
             'Índice de Fluidez (MI)',
             style: TypographySystem.buttonText.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 8),
-          Obx(
-            () => Row(
+
+          Obx(() {
+            /// 🔹 MODO FILTRO (INTERVALO)
+            if (isFilter) {
+              return RangeSlider(
+                values: c.miRange.value,
+                min: 0.05,
+                max: 20.0,
+                divisions: 100,
+                activeColor: Colors.white,
+                inactiveColor: Colors.grey[700],
+                labels: RangeLabels(
+                  c.miRange.value.start.toStringAsFixed(2),
+                  c.miRange.value.end.toStringAsFixed(2),
+                ),
+                onChanged: (range) {
+                  c.miRange.value = range;
+
+                  c.productService.addSelection(
+                    'MI',
+                    '${range.start.toStringAsFixed(2)} - ${range.end.toStringAsFixed(2)}',
+                  );
+                },
+              );
+            }
+
+            /// 🔹 MODO NORMAL (VALOR ÚNICO)
+            return Row(
               children: [
                 Expanded(
                   child: Slider(
@@ -221,50 +74,57 @@ class MiDensityStep extends GetView<HomeController> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                SizedBox(
-                  width: 70,
-                  child: TextField(
-                    controller: c.miController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: '0.00',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.grey[900],
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      final v = double.tryParse(value) ?? 0.0;
-                      c.mi.value = v;
-                      c.productService.addSelection('MI', v.toStringAsFixed(2));
-                    },
-                  ),
+                _numberField(
+                  controller: c.miController,
+                  hint: '0.00',
+                  onChanged: (value) {
+                    final v = double.tryParse(value) ?? 0.0;
+                    c.mi.value = v;
+                    c.productService.addSelection('MI', v.toStringAsFixed(2));
+                  },
                 ),
               ],
-            ),
-          ),
+            );
+          }),
 
           const SizedBox(height: 24),
 
-          /// ------------------------------------------------------------
-          /// DENSIDADE
-          /// ------------------------------------------------------------
+          /// ============================================================
+          /// DENSITY
+          /// ============================================================
           Text(
             'Densidade',
             style: TypographySystem.buttonText.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 8),
-          Obx(
-            () => Row(
+
+          Obx(() {
+            /// 🔹 MODO FILTRO (INTERVALO)
+            if (isFilter) {
+              return RangeSlider(
+                values: c.densityRange.value,
+                min: 0.800,
+                max: 1.000,
+                divisions: 30,
+                activeColor: Colors.white,
+                inactiveColor: Colors.grey[700],
+                labels: RangeLabels(
+                  c.densityRange.value.start.toStringAsFixed(3),
+                  c.densityRange.value.end.toStringAsFixed(3),
+                ),
+                onChanged: (range) {
+                  c.densityRange.value = range;
+
+                  c.productService.addSelection(
+                    'Density',
+                    '${range.start.toStringAsFixed(3)} - ${range.end.toStringAsFixed(3)}',
+                  );
+                },
+              );
+            }
+
+            /// 🔹 MODO NORMAL (VALOR ÚNICO)
+            return Row(
               children: [
                 Expanded(
                   child: Slider(
@@ -285,41 +145,56 @@ class MiDensityStep extends GetView<HomeController> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                SizedBox(
-                  width: 70,
-                  child: TextField(
-                    controller: c.densityController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: '0.000',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.grey[900],
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      final val = double.tryParse(value) ?? 0.0;
-                      c.density.value = val;
-                      c.productService.addSelection(
-                        'Density',
-                        val.toStringAsFixed(3),
-                      );
-                    },
-                  ),
+                _numberField(
+                  controller: c.densityController,
+                  hint: '0.000',
+                  onChanged: (value) {
+                    final v = double.tryParse(value) ?? 0.0;
+                    c.density.value = v;
+                    c.productService.addSelection(
+                      'Density',
+                      v.toStringAsFixed(3),
+                    );
+                  },
                 ),
               ],
-            ),
-          ),
+            );
+          }),
         ],
+      ),
+    );
+  }
+
+  /// ============================================================
+  /// 🔹 Campo numérico reutilizável
+  /// ============================================================
+  Widget _numberField({
+    required TextEditingController controller,
+    required String hint,
+    required Function(String) onChanged,
+  }) {
+    return SizedBox(
+      width: 70,
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white54),
+          filled: true,
+          fillColor: Colors.grey[900],
+          isDense: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+        ),
+        onChanged: onChanged,
       ),
     );
   }
